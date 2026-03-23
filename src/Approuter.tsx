@@ -1,6 +1,10 @@
 import { createBrowserRouter } from 'react-router';
 import App from './App.tsx';
 import { RouterProvider } from 'react-router/dom';
+import { lazy } from 'react';
+
+const AddNewUser = lazy(() => import('@/pages/AddNewUser.tsx'));
+const UserCreatedSuccess = lazy(() => import('@/pages/UserCreatedSuccess.tsx'));
 
 const router = createBrowserRouter([
   {
@@ -9,7 +13,11 @@ const router = createBrowserRouter([
   },
   {
     path: '/add-user',
-    element: <div>Add User</div>,
+    element: <AddNewUser />,
+  },
+  {
+    path: '/user-created',
+    element: <UserCreatedSuccess />,
   },
   {
     path: '/dashboard',
