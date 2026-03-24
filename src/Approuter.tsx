@@ -1,12 +1,15 @@
 import { createBrowserRouter } from 'react-router';
-import App from './App.tsx';
 import { RouterProvider } from 'react-router/dom';
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
+import AppLayout from '@/layouts/AppLayout';
+import App from './App.tsx';
 
-const AddNewUser = lazy(() => import('@/pages/AddNewUser.tsx'));
-const UserCreatedSuccess = lazy(() => import('@/pages/UserCreatedSuccess.tsx'));
+const AddNewUser = lazy(() => import('@/pages/AddNewUser'));
+const UserCreatedSuccess = lazy(() => import('@/pages/UserCreatedSuccess'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
 
 const router = createBrowserRouter([
+  // Auth / onboarding
   {
     path: '/',
     element: <App />,
@@ -19,12 +22,18 @@ const router = createBrowserRouter([
     path: '/user-created',
     element: <UserCreatedSuccess />,
   },
+
+  // App pages
   {
-    path: '/dashboard',
-    element: <div>Dashboard</div>,
+    element: <AppLayout />,
+    children: [{ path: '/dashboard', element: <Dashboard /> }],
   },
 ]);
 
-const AppRouter = () => <RouterProvider router={router} />;
+const AppRouter = () => (
+  <Suspense fallback={null}>
+    <RouterProvider router={router} />
+  </Suspense>
+);
 
 export default AppRouter;
