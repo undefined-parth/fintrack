@@ -1,11 +1,57 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-primary: #3b82f6;
   --color-bg-dark: #0b0f1a;
   --color-card-dark: #161c2d;
   --color-error-red: #ef4444;
   --font-sans: 'Inter', sans-serif;
+  --color-primary: #799dff;
+  --color-primary-fixed: #638eff;
+  --color-primary-fixed-dim: #156aff;
+  --color-primary-dim: #156aff;
+  --color-on-primary: #002971;
+  --color-on-primary-fixed: #000000;
+  --color-on-primary-fixed-variant: #00276c;
+  --color-primary-container: #799dff;
+  --color-on-primary-container: #001e58;
+  --color-secondary: #69f6b8;
+  --color-secondary-fixed: #69f6b8;
+  --color-secondary-fixed-dim: #58e7ab;
+  --color-secondary-dim: #58e7ab;
+  --color-on-secondary: #005a3c;
+  --color-on-secondary-fixed: #006544;
+  --color-on-secondary-fixed-variant: #006544;
+  --color-secondary-container: #006c49;
+  --color-on-secondary-container: #e1ffec;
+  --color-tertiary: #ff8887;
+  --color-tertiary-fixed: #ff928f;
+  --color-tertiary-fixed-dim: #ff7a7a;
+  --color-tertiary-dim: #ff7a7a;
+  --color-on-tertiary: #60000e;
+  --color-on-tertiary-fixed: #3a0005;
+  --color-on-tertiary-fixed-variant: #3a0005;
+  --color-tertiary-container: #fb7373;
+  --color-on-tertiary-container: #fb7373;
+  --color-error: #ff716c;
+  --color-error-dim: #d7383b;
+  --color-error-container: #9f0519;
+  --color-on-error-container: #ffa8a3;
+  --color-on-error: #490006;
+  --color-surface: #0b0e14;
+  --color-surface-bright: #282c36;
+  --color-surface-variant: #22262f;
+  --color-surface-container: #161a21;
+  --color-surface-container-low: #10131a;
+  --color-surface-container-lowest: #000000;
+  --color-surface-container-highest: #22262f;
+  --color-on-surface: #ecedf6;
+  --color-on-surface-variant: #a9abb3;
+  --color-inverse-surface: #f9f9ff;
+  --color-inverse-on-surface: #52555c;
+  --color-background: #0b0e14;
+  --color-on-background: #ecedf6;
+  --color-outline: #73757d;
+  --color-outline-variant: #45484f;
 }
 
 @layer base {
@@ -34,11 +80,20 @@
 
 @layer utilities {
   @keyframes subtle-pulse {
-    0% { transform: translate(-50%, -50%) scale(1); opacity: 0.04; }
-    50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.07; }
-    100% { transform: translate(-50%, -50%) scale(1); opacity: 0.04; }
+    0% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.04;
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.05);
+      opacity: 0.07;
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.04;
+    }
   }
-  
+
   .pulse-bg {
     animation: subtle-pulse 4s ease-in-out infinite;
   }
