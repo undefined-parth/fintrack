@@ -167,7 +167,7 @@ export const useTransactionStore = create<TransactionState>()(
             date: payload.date || new Date().toISOString(),
             title: payload.title.trim(),
             description: payload.description,
-            amount: payload.amount,
+            amount: Number(payload.amount),
             type: payload.type!,
             categoryId: payload.categoryId!,
             loanType: payload.loanType,
@@ -197,9 +197,12 @@ export const useTransactionStore = create<TransactionState>()(
           const revertResult = revertTransactionImpact(oldTx)
           if (!revertResult.ok) return revertResult
 
+          const safeUpdates = { ...updates };
+          if (safeUpdates.amount !== undefined) safeUpdates.amount = Number(safeUpdates.amount);
+
           const updatedTx: Transaction = {
             ...oldTx,
-            ...updates,
+            ...safeUpdates,
             id: oldTx.id,
             updatedAt: new Date().toISOString(),
           }
