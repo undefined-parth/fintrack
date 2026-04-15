@@ -1,7 +1,7 @@
 import DashboardAccountSnapshotCard from '@/components/DashboardAccountSnapshotCard';
 import DashboardLoanSnapshotCard from '@/components/DashboardLoanSnapshotCard';
-import DashboardStatsCard from '@/components/DashboardStatsCard';
-import DashboardTransactionListItem from '@/components/DashboardTransactionListItem';
+import StatsCard from '@/components/StatsCard';
+import TransactionListItem from '@/components/TransactionListItem';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useLoanStore } from '@/stores/useLoanStore';
@@ -88,7 +88,7 @@ const Dashboard = () => {
       {/* Stat Cards */}
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {statCards.map((card) => (
-          <DashboardStatsCard
+          <StatsCard
             key={card.title}
             title={card.title}
             value={card.value}
@@ -122,7 +122,12 @@ const Dashboard = () => {
               </p>
             )}
             {transactions.slice(0, 6).map((tx) => (
-              <DashboardTransactionListItem key={tx.id} transaction={tx} categories={categories} />
+              <TransactionListItem
+                key={tx.id}
+                transaction={tx}
+                category={categories.find((c) => c.id === tx.categoryId)}
+                variant="compact"
+              />
             ))}
           </div>
         </div>
