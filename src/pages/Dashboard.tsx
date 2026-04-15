@@ -32,10 +32,10 @@ const Dashboard = () => {
     txs.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
 
   const getLoanTaken = (loans: Loan[]) =>
-    loans.filter((l) => l.type === 'taken').reduce((s, l) => s + l.totalAmount, 0);
+    loans.filter((l) => l.type === 'taken').reduce((s, l) => s + l.remainingAmount, 0);
 
   const getLoanGiven = (loans: Loan[]) =>
-    loans.filter((l) => l.type === 'given').reduce((s, l) => s + l.totalAmount, 0);
+    loans.filter((l) => l.type === 'given').reduce((s, l) => s + l.remainingAmount, 0);
 
   const netWorth = accounts.reduce((s, a) => s + (a.balance ?? 0), 0);
 
