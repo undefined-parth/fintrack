@@ -7,6 +7,7 @@ import App from './App.tsx';
 const AddNewUser = lazy(() => import('@/pages/AddNewUser'));
 const UserCreatedSuccess = lazy(() => import('@/pages/UserCreatedSuccess'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const Transactions = lazy(() => import('@/pages/Transactions'));
 
 const router = createBrowserRouter([
   // Auth / onboarding
@@ -26,7 +27,10 @@ const router = createBrowserRouter([
   // App pages
   {
     element: <AppLayout />,
-    children: [{ path: '/dashboard', element: <Dashboard /> }],
+    children: [
+      { path: '/dashboard', element: <Dashboard /> },
+      { path: '/transactions', element: <Transactions /> },
+    ],
   },
 ]);
 

@@ -1,0 +1,213 @@
+import { useState } from 'react';
+import { useUserStore } from '../stores/useUserStore';
+import { useTransactionStore } from '../stores/useTransactionStore';
+import { useCategoryStore } from '../stores/useCategoryStore';
+import { useAccountStore } from '../stores/useAccountStore';
+import AddTransactionModal from '../components/AddTransactionModal';
+import StatsCard from '@/components/StatsCard';
+import Select from '@/components/ui/Select';
+import IconPlus from '../assets/icons/IconPlus';
+import TransactionListItem from '@/components/TransactionListItem';
+
+
+
+const Transactions = () => {
+  const { currentUser } = useUserStore();
+  const { getTransactionsForUser, getSummary, deleteTransaction } = useTransactionStore();
+  const { getAllCategories } = useCategoryStore();
+  const { accounts } = useAccountStore();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [accountFilter, setAccountFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+
+  const userId = currentUser?.id || '';
+  const transactions = getTransactionsForUser(userId);
+  const categories = getAllCategories(userId);
+  const { totalIncome, totalExpense, net } = getSummary(userId);
+
+  const filteredTransactions = transactions.filter((tx) => {
+    const matchesSearch =
+      tx.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tx.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tx.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    const matchesType = typeFilter === 'all' || tx.type === typeFilter;
+
+    const matchesAccount = accountFilter === 'all' || tx.accountId === accountFilter;
+
+    const matchesCategory = categoryFilter === 'all' || tx.categoryId === categoryFilter;
+
+    return matchesSearch && matchesType && matchesAccount && matchesCategory;
+  });
+
+  // TODO: Implement handleEdit Function
+  function handleEdit(_id: string): void {
+    throw new Error('Function not implemented.');
+  }
+
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this transaction?')) {
+      deleteTransaction(id);
+    }
+  };
+
+
+
+  const statCards = [
+    {
+      title: 'Total Income',
+      value: totalIncome,
+      accent: 'secondary' as const,
+    },
+    {
+      title: 'Total Expense',
+      value: totalExpense,
+      accent: 'tertiary' as const,
+    },
+    {
+      title: 'Net Balance',
+      value: net,
+      accent: 'primary' as const,
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-surface px-8 pt-7 pb-10 font-sans text-on-surface">
+      <div className="space-y-8">
+        {/* Header Section */}
+        <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <p className="mb-1 text-[10px] font-bold tracking-[0.15em] text-outline uppercase">
+              Manage your income and expenses
+            </p>
+            <h1 className="text-[22px] font-bold tracking-tight text-on-background">
+              Transactions
+            </h1>
+          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold outline transition-all hover:-translate-y-0.5 hover:bg-primary hover:text-on-primary hover:shadow-[0_1px_20px_-6px_rgba(121,157,255,0.6)] active:scale-95 sm:w-auto"
+          >
+            <IconPlus /> Add Transaction
+          </button>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 gap-4 font-mono md:grid-cols-3">
+          {statCards.map((card) => (
+            <StatsCard key={card.title} title={card.title} value={card.value} accent={card.accent} variant="compact" />
+          ))}
+        </div>
+
+        {/* Filters & Search */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          {/* Search */}
+          <div className="group relative flex-1">
+            <span className="absolute top-1/2 left-4 -translate-y-1/2 opacity-40">🔍</span>
+
+            <input
+              type="text"
+              placeholder="Search by tags, description, title, etc...."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-2xl border border-transparent bg-surface-container-low/80 py-3.5 pr-4 pl-12 text-sm font-medium text-on-surface placeholder:text-outline/50 focus:border-primary/40 focus:bg-surface-container focus:ring-4 focus:ring-primary/10 focus:outline-none"
+            />
+          </div>
+
+          {/* Select Filters */}
+          <div className="flex flex-wrap gap-2">
+            {/* Account Select */}
+            <Select
+              value={accountFilter}
+              onChange={setAccountFilter}
+              options={[
+                { label: 'All Accounts', value: 'all' },
+                ...accounts.map((acc) => ({
+                  label: acc.name,
+                  value: acc.id,
+                })),
+              ]}
+            />
+
+            {/* Category Select */}
+            <Select
+              value={categoryFilter}
+              onChange={setCategoryFilter}
+              options={[
+                { label: 'All Categories', value: 'all' },
+                ...categories.map((cat) => ({
+                  label: cat.name,
+                  value: cat.id,
+                })),
+              ]}
+            />
+          </div>
+
+          {/* Type Filters */}
+          <div className="flex flex-wrap gap-2">
+            {['all', 'income', 'expense', 'transfer', 'loan'].map((t) => {
+              const active = typeFilter === t;
+
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTypeFilter(t)}
+                  className={`rounded-full px-4 py-2 text-xs font-semibold capitalize transition-all ${
+                    active
+                      ? 'bg-primary text-on-primary shadow-md shadow-primary/20'
+                      : 'bg-surface-container-low text-outline hover:bg-surface-variant/60 hover:text-on-surface'
+                  } `}
+                >
+                  {t}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Transactions List */}
+        {/* <div className="overflow-hidden rounded-[2.5rem] border border-outline-variant/20 bg-surface-container-low shadow-xl shadow-black/5"> */}
+        <div className="flex flex-col gap-1.5 overflow-hidden">
+          {filteredTransactions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center pt-32 text-center">
+              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-surface-container text-4xl opacity-20">
+                📑
+              </div>
+              <p className="text-xl font-bold text-on-surface">No transactions found</p>
+              <p className="mt-1 text-sm text-outline">
+                Try adjusting your filters or search query
+              </p>
+            </div>
+          ) : (
+            // <div className="divide-y divide-outline-variant/10">
+            <div className="flex flex-col gap-1.5">
+              {filteredTransactions.map((tx) => {
+                const category = categories.find((c) => c.id === tx.categoryId);
+                const account = accounts.find((a) => a.id === tx.accountId);
+
+                return (
+                  <TransactionListItem
+                    key={tx.id}
+                    transaction={tx}
+                    category={category}
+                    account={account}
+                    variant="default"
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <AddTransactionModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+    </div>
+  );
+};
+
+export default Transactions;
