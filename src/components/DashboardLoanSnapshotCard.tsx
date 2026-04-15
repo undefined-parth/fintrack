@@ -1,17 +1,22 @@
 import type { Loan } from '@/types';
 import { formatCurrency } from '@/utils/formatters';
 
-const DashboardLoanSnapshotCard = ({ l }: { l: Loan }) => {
+const DashboardLoanSnapshotCard = ({ l, currency }: { l: Loan; currency?: string }) => {
+  const isGiven = l.type === 'given';
+
   return (
-    <div className="rounded-xl bg-surface-container-low p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="text-on-surface">
-          <p className="tracking-wides text-[10px] font-bold text-ellipsis text-on-surface uppercase">
-            Loan {l.type === 'given' ? 'Given to' : 'Taken from'} {l.personName}
+    <div className="flex items-center justify-between border-b border-outline-variant/20 px-4 py-3 last:border-b-0">
+      <div className="flex items-center gap-2.5">
+        <div className={`h-1.5 w-1.5 rounded-full ${isGiven ? 'bg-[#fbbf24]' : 'bg-tertiary'}`} />
+        <div>
+          <p className="text-[12px] font-semibold text-on-surface-variant">
+            {isGiven ? `Given → ${l.personName}` : `Taken ← ${l.personName}`}
           </p>
-          <h4 className="text-lg font-bold">{formatCurrency(l.remainingAmount, false)}</h4>
         </div>
       </div>
+      <p className="font-mono text-[13px] font-medium text-on-surface">
+        {formatCurrency(l.remainingAmount, false, currency)}
+      </p>
     </div>
   );
 };
