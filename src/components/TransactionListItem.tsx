@@ -91,7 +91,10 @@ const TransactionListItem = ({
   // ─── Compact variant (Dashboard) ────────────────────────────────────────────
   if (variant === 'compact') {
     return (
-      <div className="group flex cursor-pointer items-center gap-3 rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3.5 transition-colors hover:border-outline-variant/50">
+      <div 
+        onClick={() => onEdit?.(transaction.id)}
+        className="group flex cursor-pointer items-center gap-3 rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3.5 transition-colors hover:border-outline-variant/50"
+      >
         {/* Dot */}
         <div className={`h-2 w-2 shrink-0 rounded-full ${dotClass[type] ?? dotClass.transfer}`} />
 
@@ -120,7 +123,10 @@ const TransactionListItem = ({
   const styles = getTransactionStyles(transaction);
 
   return (
-    <div className="group flex cursor-pointer items-center gap-3 rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3.5 transition-colors hover:border-outline-variant/50">
+    <div 
+      onClick={() => onEdit?.(transaction.id)}
+      className="group flex cursor-pointer items-center gap-3 rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3.5 transition-colors hover:border-outline-variant/50"
+    >
       {/* Visual Icon Section */}
       <div
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[5px] ${styles.bg} shadow-sm transition-all group-hover:scale-110 group-hover:shadow-md`}
@@ -145,7 +151,7 @@ const TransactionListItem = ({
         </div>
         <div className="mt-1 flex items-center gap-2 text-xs font-semibold text-outline">
           <span className="flex items-center gap-1 text-outline">
-            <span>{transaction.type.toUpperCase()}</span>
+            <span className="capitalize">{transaction.type}</span>
             <span className="h-0.5 w-0.5 rounded-full bg-on-surface-variant/50"></span>
             <span>{category?.name || 'Uncategorized'}</span>
             <span className="h-0.5 w-0.5 rounded-full bg-on-surface-variant/50"></span>
@@ -167,19 +173,27 @@ const TransactionListItem = ({
         </div>
 
         {/* Hover Controls */}
-        <div className="hidden items-center gap-2 transition-all group-hover:flex">
+        <div className="flex items-center gap-2 opacity-0 transition-all group-hover:opacity-100">
           {!isLoan ? (
             <>
               <button
+                type="button"
                 title="Edit Transaction"
-                onClick={() => onEdit?.(transaction.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit?.(transaction.id);
+                }}
                 className="flex h-8 w-8 items-center justify-center rounded-xl text-lg text-outline transition-all hover:bg-primary/10 hover:text-primary active:scale-90"
               >
                 ✏️
               </button>
               <button
+                type="button"
                 title="Delete Transaction"
-                onClick={() => onDelete?.(transaction.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete?.(transaction.id);
+                }}
                 className="flex h-8 w-8 items-center justify-center rounded-xl text-lg text-outline transition-all hover:bg-error-container/30 hover:text-error active:scale-90"
               >
                 🗑️
