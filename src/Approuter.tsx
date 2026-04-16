@@ -8,6 +8,7 @@ const AddNewUser = lazy(() => import('@/pages/AddNewUser'));
 const UserCreatedSuccess = lazy(() => import('@/pages/UserCreatedSuccess'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Transactions = lazy(() => import('@/pages/Transactions'));
+const Loans = lazy(() => import('@/pages/Loans'));
 
 const router = createBrowserRouter([
   // Auth / onboarding
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/dashboard', element: <Dashboard /> },
       { path: '/transactions', element: <Transactions /> },
+      { path: '/loans', element: <Loans /> },
     ],
   },
 ]);
