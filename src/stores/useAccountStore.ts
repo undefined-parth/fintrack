@@ -8,7 +8,7 @@ import { useTransactionStore } from './useTransactionStore';
 interface AccountState {
   accounts: Account[];
   addAccount: (payload: Partial<Account>) => Result<Account>;
-  updateAccount: (id: string, updates: Partial<Account>) => void;
+  updateAccount: (id: string, updates: Partial<Account>) => Result;
   deleteAccount: (id: string) => Result;
   getAccountsForUser: (userId: string) => Account[];
   // These are account-modifying methods for transactions
@@ -46,7 +46,7 @@ export const useAccountStore = create<AccountState>()(
 
         if (newAccount.type === 'credit') {
           newAccount.limit = payload.limit !== undefined ? Number(payload.limit) : undefined;
-          newAccount.used = 0;
+          newAccount.used = payload.used !== undefined ? Number(payload.used) : 0;
         } else {
           newAccount.balance = payload.balance !== undefined ? Number(payload.balance) : 0;
         }
@@ -63,6 +63,21 @@ export const useAccountStore = create<AccountState>()(
         return { ok: true, data: newAccount };
       },
       updateAccount: (id, updates) => {
+        const state = get();
+        const oldAccount = state.accounts.find(a => a.id === id);
+        if (!oldAccount) return { ok: false, error: 'Account not found' };
+
+        // Rule: cannot change type if transactions exist
+        if (updates.type && updates.type !== oldAccount.type) {
+          const transactions = useTransactionStore.getState().transactions;
+          const hasTransactions = transactions.some(
+            (t) => t.accountId === id || t.toAccountId === id
+          );
+          if (hasTransactions) {
+            return { ok: false, error: 'Cannot change account type because it has associated transactions.' };
+          }
+        }
+
         const sanitizedUpdates = { ...updates };
         if (sanitizedUpdates.balance !== undefined) sanitizedUpdates.balance = Number(sanitizedUpdates.balance);
         if (sanitizedUpdates.limit !== undefined) sanitizedUpdates.limit = Number(sanitizedUpdates.limit);
@@ -79,6 +94,8 @@ export const useAccountStore = create<AccountState>()(
           entityId: id,
           newValue: sanitizedUpdates,
         });
+
+        return { ok: true };
       },
       deleteAccount: (id) => {
         const transactions = useTransactionStore.getState().transactions;
@@ -87,7 +104,7 @@ export const useAccountStore = create<AccountState>()(
         );
 
         if (hasTransactions) {
-          return { ok: false, error: 'This account has transactions and cannot be deleted.' };
+          return { ok: false, error: 'Cannot delete account because it has associated transactions.' };
         }
 
         set((state) => ({
