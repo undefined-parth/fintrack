@@ -10,9 +10,10 @@ type Props = {
   onChange: (value: string) => void;
   options: Option[];
   placeholder?: string;
+  className?: string;
 };
 
-export default function Select({ value, onChange, options, placeholder = 'Select...' }: Props) {
+export default function Select({ value, onChange, options, placeholder = 'Select...', className }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -27,10 +28,10 @@ export default function Select({ value, onChange, options, placeholder = 'Select
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  }, [ref]);
 
   return (
-    <div ref={ref} className="relative w-44">
+    <div ref={ref} className={`relative ${className || 'w-44'}`}>
       {/* Trigger */}
       <button
         onClick={() => setOpen(!open)}

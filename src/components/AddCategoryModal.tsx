@@ -51,6 +51,10 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
     }
 
     const userId = currentUser?.id || '';
+    if (!userId) {
+      setError('User not authenticated');
+      return;
+    }
 
     let res;
     if (editingCategory) {

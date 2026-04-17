@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useUserStore } from '../stores/useUserStore';
 import { useTransactionStore } from '../stores/useTransactionStore';
 import { useCategoryStore } from '../stores/useCategoryStore';
@@ -23,7 +23,7 @@ const Transactions = () => {
   const { currentUser } = useUserStore();
   const { getTransactionsForUser, getSummary, deleteTransaction, transactions } =
     useTransactionStore();
-  const { getAllCategories } = useCategoryStore();
+  const { userCategories, getAllCategories } = useCategoryStore();
   const { accounts } = useAccountStore();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,9 +44,21 @@ const Transactions = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const userId = currentUser?.id || '';
-  const userTransactions = getTransactionsForUser(userId);
-  const categories = getAllCategories(userId);
-  const { totalIncome, totalExpense, net } = getSummary(userId);
+
+  const userTransactions = useMemo(() => {
+    return getTransactionsForUser(userId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, getTransactionsForUser, transactions]);
+
+  const categories = useMemo(() => {
+    return getAllCategories(userId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, getAllCategories, userCategories]);
+
+  const { totalIncome, totalExpense, net } = useMemo(() => {
+    return getSummary(userId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, getSummary, transactions]);
 
   // Extract all unique tags
   const availableTags = useMemo(() => {
@@ -135,24 +147,30 @@ const Transactions = () => {
     sortBy,
   ]);
 
-  const handleEdit = (id: string) => {
-    const tx = transactions.find((t) => t.id === id);
-    if (tx) {
-      setEditingTransaction(tx);
-      setIsModalOpen(true);
-    }
-  };
+  const handleEdit = useCallback(
+    (id: string) => {
+      const tx = transactions.find((t) => t.id === id);
+      if (tx) {
+        setEditingTransaction(tx);
+        setIsModalOpen(true);
+      }
+    },
+    [transactions]
+  );
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this transaction?')) {
-      deleteTransaction(id);
-    }
-  };
+  const handleDelete = useCallback(
+    (id: string) => {
+      if (confirm('Are you sure you want to delete this transaction?')) {
+        deleteTransaction(id);
+      }
+    },
+    [deleteTransaction]
+  );
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setEditingTransaction(null);
-  };
+  }, []);
 
   const statCards = [
     {
@@ -299,6 +317,7 @@ const Transactions = () => {
                   <Select
                     value={sortBy}
                     onChange={setSortBy}
+                    className="w-full"
                     options={[
                       { label: 'Date (Newest)', value: 'date_desc' },
                       { label: 'Date (Oldest)', value: 'date_asc' },
@@ -317,6 +336,7 @@ const Transactions = () => {
                   <Select
                     value={dateRange}
                     onChange={setDateRange}
+                    className="w-full"
                     options={[
                       { label: 'All Time', value: 'all' },
                       { label: 'This Month', value: 'this_month' },

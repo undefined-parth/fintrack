@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useUserStore } from '../stores/useUserStore';
 import { useCategoryStore } from '../stores/useCategoryStore';
 import AddCategoryModal from '../components/AddCategoryModal';
@@ -7,7 +7,7 @@ import type { Category, CategoryType } from '../types';
 
 const Categories = () => {
   const { currentUser } = useUserStore();
-  const { getAllCategories, deleteCategory } = useCategoryStore();
+  const { userCategories, getAllCategories, deleteCategory } = useCategoryStore();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -15,36 +15,44 @@ const Categories = () => {
   const [typeFilter, setTypeFilter] = useState<CategoryType | 'all'>('all');
 
   const userId = currentUser?.id || '';
-  const allCategories = getAllCategories(userId);
+  
+  const allCategories = useMemo(() => {
+    return getAllCategories(userId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, getAllCategories, userCategories]);
 
-  const filteredCategories = allCategories.filter((cat) => {
-    const matchesSearch = cat.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = typeFilter === 'all' || cat.type === typeFilter;
-    return matchesSearch && matchesType;
-  });
+  const filteredCategories = useMemo(() => {
+    return allCategories.filter((cat) => {
+      const matchesSearch = cat.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = typeFilter === 'all' || cat.type === typeFilter;
+      return matchesSearch && matchesType;
+    });
+  }, [allCategories, searchQuery, typeFilter]);
 
-  const incomeCategories = filteredCategories.filter((c) => c.type === 'income');
-  const expenseCategories = filteredCategories.filter((c) => c.type === 'expense');
-  const systemCategories = filteredCategories.filter((c) => c.type === 'system');
+  const { incomeCategories, expenseCategories, systemCategories } = useMemo(() => ({
+    incomeCategories: filteredCategories.filter((c) => c.type === 'income'),
+    expenseCategories: filteredCategories.filter((c) => c.type === 'expense'),
+    systemCategories: filteredCategories.filter((c) => c.type === 'system'),
+  }), [filteredCategories]);
 
-  const handleEdit = (category: Category) => {
+  const handleEdit = useCallback((category: Category) => {
     setEditingCategory(category);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = useCallback((id: string) => {
     if (confirm('Are you sure you want to delete this category?')) {
       const res = deleteCategory(id);
       if (!res.ok) {
         alert(res.error);
       }
     }
-  };
+  }, [deleteCategory]);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setEditingCategory(null);
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-surface px-8 pt-7 pb-10 font-sans text-on-surface">
