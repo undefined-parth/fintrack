@@ -15,6 +15,7 @@ const Sidebar = () => {
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', iconName: 'dashboard' },
     { path: '/transactions', label: 'Transactions', iconName: 'receipt_long' },
+    { path: '/categories', label: 'Categories', iconName: 'category' },
     { path: '/accounts', label: 'Accounts', iconName: 'account_balance_wallet' },
     { path: '/loans', label: 'Loans', iconName: 'payments' },
     { path: '/reports', label: 'Reports', iconName: 'analytics' },

@@ -10,6 +10,7 @@ const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Transactions = lazy(() => import('@/pages/Transactions'));
 const Loans = lazy(() => import('@/pages/Loans'));
 const Accounts = lazy(() => import('@/pages/Accounts'));
+const Categories = lazy(() => import('@/pages/Categories'));
 
 const router = createBrowserRouter([
   // Auth / onboarding
@@ -32,6 +33,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/dashboard', element: <Dashboard /> },
       { path: '/transactions', element: <Transactions /> },
+      { path: '/categories', element: <Categories /> },
       { path: '/accounts', element: <Accounts /> },
       { path: '/loans', element: <Loans /> },
     ],
