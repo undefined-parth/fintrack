@@ -34,6 +34,7 @@ export default function Select({ value, onChange, options, placeholder = 'Select
     <div ref={ref} className={`relative ${className || 'w-44'}`}>
       {/* Trigger */}
       <button
+        type="button"
         onClick={() => setOpen(!open)}
         className="flex w-full items-center justify-between rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-2.5 text-xs font-semibold text-on-surface transition hover:bg-surface-variant/50"
       >

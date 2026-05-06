@@ -10,8 +10,9 @@ interface AddAccountModalProps {
 }
 
 const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, editingAccount }) => {
-  const { currentUser } = useUserStore();
-  const { addAccount, updateAccount } = useAccountStore();
+  const currentUser = useUserStore((state) => state.currentUser);
+  const addAccount = useAccountStore((state) => state.addAccount);
+  const updateAccount = useAccountStore((state) => state.updateAccount);
 
   const [name, setName] = useState('');
   const [type, setType] = useState<AccountType>('cash');

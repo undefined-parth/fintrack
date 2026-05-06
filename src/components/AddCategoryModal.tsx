@@ -15,8 +15,9 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
   onClose,
   editingCategory,
 }) => {
-  const { currentUser } = useUserStore();
-  const { addCategory, editCategory } = useCategoryStore();
+  const currentUser = useUserStore((state) => state.currentUser);
+  const addCategory = useCategoryStore((state) => state.addCategory);
+  const editCategory = useCategoryStore((state) => state.editCategory);
 
   const [name, setName] = useState('');
   const [type, setType] = useState<CategoryType>('expense');

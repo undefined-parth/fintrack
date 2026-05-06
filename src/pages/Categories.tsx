@@ -5,9 +5,17 @@ import AddCategoryModal from '../components/AddCategoryModal';
 import IconPlus from '../assets/icons/IconPlus';
 import type { Category, CategoryType } from '../types';
 
+import { useShallow } from 'zustand/react/shallow';
+
 const Categories = () => {
-  const { currentUser } = useUserStore();
-  const { userCategories, getAllCategories, deleteCategory } = useCategoryStore();
+  const currentUser = useUserStore((state) => state.currentUser);
+  const { userCategories, getAllCategories, deleteCategory } = useCategoryStore(
+    useShallow((state) => ({
+      userCategories: state.userCategories,
+      getAllCategories: state.getAllCategories,
+      deleteCategory: state.deleteCategory,
+    }))
+  );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useUserStore } from '../stores/useUserStore';
 import { useAccountStore } from '../stores/useAccountStore';
 import { useCategoryStore } from '../stores/useCategoryStore';
 import { useTransactionStore } from '../stores/useTransactionStore';
 import { useLoanStore } from '../stores/useLoanStore';
+import { SYSTEM_CATEGORIES } from '../constants/categories';
 import type { TransactionType, LoanTransactionType, Category, Transaction } from '../types';
 
 interface AddTransactionModalProps {
@@ -17,16 +19,22 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   onClose,
   editingTransaction,
 }) => {
-  const { currentUser } = useUserStore();
-  const { getAccountsForUser } = useAccountStore();
-  const { getAllCategories } = useCategoryStore();
+  const currentUser = useUserStore((state) => state.currentUser);
+  const accounts = useAccountStore(
+    useShallow((state) => state.accounts.filter((a) => a.userId === currentUser?.id))
+  );
+  const categories = useCategoryStore(
+    useShallow((state) => [
+      ...SYSTEM_CATEGORIES,
+      ...state.userCategories.filter((c) => c.userId === currentUser?.id),
+    ])
+  );
   const { addTransaction, updateTransaction } = useTransactionStore();
   const { getActiveLoans } = useLoanStore();
 
-  const userId = currentUser?.id || '';
-  const accounts = getAccountsForUser(userId);
-  const categories = getAllCategories(userId);
-  const activeLoans = getActiveLoans(userId);
+  const activeLoans = useMemo(() => {
+    return getActiveLoans(currentUser?.id || '');
+  }, [currentUser?.id, getActiveLoans]);
 
   // Initial defaults
   const getDefaultCategory = (txType: TransactionType, cats: Category[]) => {
@@ -103,6 +111,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       return;
     }
 
+    const userId = currentUser?.id || '';
     const payload = {
       userId,
       title,

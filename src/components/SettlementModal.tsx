@@ -6,16 +6,19 @@ import type { Loan } from '@/types';
 import { formatCurrency } from '@/utils/formatters';
 import { useState, useEffect } from 'react';
 
+import { useShallow } from 'zustand/react/shallow';
+
 const SettlementModal: React.FC<ModalProps & { loan: Loan | null }> = ({
   isOpen,
   onClose,
   loan,
 }) => {
-  const { currentUser } = useUserStore();
-  const { addTransaction } = useTransactionStore();
-  const { getAccountsForUser } = useAccountStore();
+  const currentUser = useUserStore((state) => state.currentUser);
+  const addTransaction = useTransactionStore((state) => state.addTransaction);
+  const accounts = useAccountStore(
+    useShallow((state) => state.accounts.filter((a) => a.userId === currentUser?.id))
+  );
   const userId = currentUser?.id || '';
-  const accounts = getAccountsForUser(userId);
 
   const [amount, setAmount] = useState('');
   const [accountId, setAccountId] = useState('');
@@ -25,14 +28,14 @@ const SettlementModal: React.FC<ModalProps & { loan: Loan | null }> = ({
 
   useEffect(() => {
     if (isOpen && loan) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAmount(loan.remainingAmount.toString());
       setAccountId(accounts[0]?.id || '');
       setDate(new Date().toISOString().split('T')[0]);
       setTitle(`Settlement ${loan.type === 'given' ? 'from' : 'to'} ${loan.personName}`);
       setError('');
     }
-  }, [isOpen, loan, accounts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, loan?.id]);
 
   if (!isOpen || !loan) return null;
 

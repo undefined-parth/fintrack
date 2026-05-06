@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useUserStore } from '../stores/useUserStore';
 import { useTransactionStore } from '../stores/useTransactionStore';
 import { useCategoryStore } from '../stores/useCategoryStore';
@@ -20,11 +21,23 @@ import {
 } from 'date-fns';
 
 const Transactions = () => {
-  const { currentUser } = useUserStore();
-  const { getTransactionsForUser, getSummary, deleteTransaction, transactions } =
-    useTransactionStore();
-  const { userCategories, getAllCategories } = useCategoryStore();
-  const { accounts } = useAccountStore();
+  const currentUser = useUserStore((state) => state.currentUser);
+  const { transactions, getTransactionsForUser, getSummary, deleteTransaction } =
+    useTransactionStore(
+      useShallow((state) => ({
+        transactions: state.transactions,
+        getTransactionsForUser: state.getTransactionsForUser,
+        getSummary: state.getSummary,
+        deleteTransaction: state.deleteTransaction,
+      }))
+    );
+  const { userCategories, getAllCategories } = useCategoryStore(
+    useShallow((state) => ({
+      userCategories: state.userCategories,
+      getAllCategories: state.getAllCategories,
+    }))
+  );
+  const accounts = useAccountStore((state) => state.accounts);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);

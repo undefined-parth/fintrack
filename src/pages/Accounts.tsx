@@ -7,15 +7,17 @@ import type { Account } from '../types';
 import { formatCurrency } from '../utils/formatters';
 import AddAccountModal from '@/components/AddAccountModal';
 
+import { useShallow } from 'zustand/react/shallow';
+
 const Accounts = () => {
-  const { currentUser } = useUserStore();
-  const { getAccountsForUser, deleteAccount } = useAccountStore();
+  const currentUser = useUserStore((state) => state.currentUser);
+  const accounts = useAccountStore(
+    useShallow((state) => state.accounts.filter((a) => a.userId === currentUser?.id))
+  );
+  const deleteAccount = useAccountStore((state) => state.deleteAccount);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
-
-  const userId = currentUser?.id || '';
-  const accounts = getAccountsForUser(userId);
 
   const { totalBalance, totalDebt, netWorth } = useMemo(() => {
     let balance = 0;
