@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuid } from 'uuid';
-import type { Loan, LoanType, Result } from '../types';
+import type { Loan, LoanType, Result, Transaction } from '../types';
 import { useAuditStore } from './useAuditStore';
 import { useTransactionStore } from './useTransactionStore';
 
@@ -10,6 +10,7 @@ interface LoanState {
   addLoan: (payload: Partial<Loan>) => Result<Loan>;
   updateLoan: (id: string, updates: Partial<Loan>) => void;
   deleteLoan: (id: string) => Result;
+  markAsDefaulted: (id: string) => Result<Transaction>;
   getLoansForUser: (userId: string) => Loan[];
   getActiveLoans: (userId: string) => Loan[];
   getLoanSummary: (userId: string) => {
@@ -39,6 +40,7 @@ export const useLoanStore = create<LoanState>()(
           dueDate: payload.dueDate,
           totalAmount: payload.totalAmount,
           remainingAmount: payload.totalAmount,
+          interestRate: Number(payload.interestRate) || 0,
           status: 'active',
           accountId: payload.accountId,
           createdAt: new Date().toISOString(),
@@ -50,7 +52,7 @@ export const useLoanStore = create<LoanState>()(
           userId: newLoan.userId,
           date: newLoan.startDate,
           title: `Loan ${newLoan.type === 'given' ? 'to' : 'from'} ${newLoan.personName}`,
-          description: `Initial loan disbursement`,
+          description: `Initial loan disbursement${newLoan.interestRate ? ` (Interest: ${newLoan.interestRate}%)` : ''}`,
           amount: newLoan.totalAmount,
           type: 'loan',
           loanType: newLoan.type,
@@ -91,6 +93,53 @@ export const useLoanStore = create<LoanState>()(
         useAuditStore
           .getState()
           .addEntry({ action: 'delete', entity: 'loan', entityId: id, newValue: null });
+
+        return { ok: true };
+      },
+      markAsDefaulted: (id) => {
+        const loan = get().loans.find((l) => l.id === id);
+        if (!loan) return { ok: false, error: 'Loan not found' };
+        if (loan.status !== 'active') return { ok: false, error: 'Only active loans can default' };
+        if (loan.type !== 'given')
+          return { ok: false, error: 'Only given loans can default (as an expense)' };
+        if (loan.remainingAmount <= 0)
+          return { ok: false, error: 'Loan has no remaining amount to default' };
+
+        const txStore = useTransactionStore.getState();
+        const txResult = txStore.addTransaction({
+          userId: loan.userId,
+          date: new Date().toISOString(),
+          title: `Default: ${loan.personName}`,
+          description: `Remaining amount marked as bad debt/expense`,
+          amount: loan.remainingAmount,
+          type: 'expense',
+          accountId: loan.accountId,
+          loanId: loan.id,
+          categoryId: 'sys_loan_default',
+          tags: ['loan-default'],
+        });
+
+        if (!txResult.ok) return txResult;
+
+        set((state) => ({
+          loans: state.loans.map((l) =>
+            l.id === id
+              ? {
+                  ...l,
+                  status: 'defaulted',
+                  remainingAmount: 0,
+                  updatedAt: new Date().toISOString(),
+                }
+              : l
+          ),
+        }));
+
+        useAuditStore.getState().addEntry({
+          action: 'update',
+          entity: 'loan',
+          entityId: id,
+          newValue: { status: 'defaulted', remainingAmount: 0 },
+        });
 
         return { ok: true };
       },

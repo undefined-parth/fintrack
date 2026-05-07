@@ -18,6 +18,7 @@ const AddLoanModal: React.FC<ModalProps & { editingLoan: Loan | null }> = ({
 
   const [personName, setPersonName] = useState('');
   const [totalAmount, setTotalAmount] = useState('');
+  const [interestRate, setInterestRate] = useState('');
   const [accountId, setAccountId] = useState('');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState('');
@@ -33,9 +34,11 @@ const AddLoanModal: React.FC<ModalProps & { editingLoan: Loan | null }> = ({
         setStartDate(editingLoan.startDate.split('T')[0]);
         setDueDate(editingLoan.dueDate ? editingLoan.dueDate.split('T')[0] : '');
         setType(editingLoan.type);
+        setInterestRate(editingLoan.interestRate?.toString() || '');
       } else {
         setPersonName('');
         setTotalAmount('');
+        setInterestRate('');
         setAccountId(accounts[0]?.id || '');
         setStartDate(new Date().toISOString().split('T')[0]);
         setDueDate('');
@@ -53,10 +56,11 @@ const AddLoanModal: React.FC<ModalProps & { editingLoan: Loan | null }> = ({
     setError('');
 
     if (editingLoan) {
-      // Editing only allows changing personName and dueDate
+      // Editing only allows changing personName, dueDate, and interestRate
       updateLoan(editingLoan.id, {
         personName,
         dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
+        interestRate: interestRate ? parseFloat(interestRate) : undefined,
       });
       onClose();
     } else {
@@ -64,6 +68,7 @@ const AddLoanModal: React.FC<ModalProps & { editingLoan: Loan | null }> = ({
         userId,
         personName,
         totalAmount: parseFloat(totalAmount),
+        interestRate: interestRate ? parseFloat(interestRate) : undefined,
         accountId,
         startDate: new Date(startDate).toISOString(),
         dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
@@ -123,16 +128,18 @@ const AddLoanModal: React.FC<ModalProps & { editingLoan: Loan | null }> = ({
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-outline">Loan Type</label>
-              <select
-                disabled={!!editingLoan}
-                value={type}
-                onChange={(e) => setType(e.target.value as LoanType)}
-                className="w-full rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:border-primary/50 focus:outline-none disabled:opacity-50"
-              >
-                <option value="given">I gave this money</option>
-                <option value="taken">I took this money</option>
-              </select>
+              <label className="mb-1.5 block text-xs font-semibold text-outline">
+                Interest Rate (% p.a.)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={interestRate}
+                onChange={(e) => setInterestRate(e.target.value)}
+                placeholder="0.00"
+                className="w-full rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:border-primary/50 focus:outline-none"
+              />{' '}
             </div>
           </div>
 
@@ -149,16 +156,29 @@ const AddLoanModal: React.FC<ModalProps & { editingLoan: Loan | null }> = ({
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-outline">
-                Due Date (Optional)
-              </label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:border-primary/50 focus:outline-none"
-              />
+              <label className="mb-1.5 block text-xs font-semibold text-outline">Loan Type</label>
+              <select
+                disabled={!!editingLoan}
+                value={type}
+                onChange={(e) => setType(e.target.value as LoanType)}
+                className="w-full rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:border-primary/50 focus:outline-none disabled:opacity-50"
+              >
+                <option value="given">I gave this money</option>
+                <option value="taken">I took this money</option>
+              </select>
             </div>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-outline">
+              Due Date (Optional)
+            </label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="w-full rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:border-primary/50 focus:outline-none"
+            />
           </div>
 
           {!editingLoan && (

@@ -16,7 +16,7 @@ export interface ModalProps {
 
 const Loans = () => {
   const { currentUser } = useUserStore();
-  const { getLoansForUser, deleteLoan } = useLoanStore();
+  const { getLoansForUser, deleteLoan, markAsDefaulted } = useLoanStore();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
@@ -24,7 +24,7 @@ const Loans = () => {
   const [historyLoan, setHistoryLoan] = useState<Loan | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'given' | 'taken'>('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'closed'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'closed' | 'defaulted'>('all');
 
   const userId = currentUser?.id || '';
   const loans = getLoansForUser(userId);
@@ -47,6 +47,17 @@ const Loans = () => {
       )
     ) {
       deleteLoan(id);
+    }
+  };
+
+  const handleDefault = (id: string) => {
+    if (
+      confirm(
+        'Are you sure you want to mark this loan as defaulted? The remaining balance will be recorded as an expense and the loan will be closed.'
+      )
+    ) {
+      const res = markAsDefaulted(id);
+      if (!res.ok) alert(res.error);
     }
   };
 
@@ -99,11 +110,12 @@ const Loans = () => {
             />
             <Select
               value={statusFilter}
-              onChange={(val) => setStatusFilter(val as 'active' | 'closed' | 'all')}
+              onChange={(val) => setStatusFilter(val as 'active' | 'closed' | 'defaulted' | 'all')}
               options={[
                 { label: 'All Status', value: 'all' },
                 { label: 'Active', value: 'active' },
                 { label: 'Closed', value: 'closed' },
+                { label: 'Defaulted', value: 'defaulted' },
               ]}
             />
           </div>
@@ -125,20 +137,22 @@ const Loans = () => {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredLoans.map((loan) => {
                 const isClosed = loan.status === 'closed';
+                const isDefaulted = loan.status === 'defaulted';
+                const isInactive = isClosed || isDefaulted;
 
                 return (
                   <div
                     key={loan.id}
                     className={`group relative flex flex-col gap-4 rounded-3xl border transition-all ${
-                      isClosed
+                      isInactive
                         ? 'border-outline-variant/10 bg-surface-container-low/50 opacity-60 grayscale-[0.5]'
                         : 'border-outline-variant/20 bg-surface-container-low hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5'
                     } p-6`}
                   >
-                    {isClosed && (
+                    {isInactive && (
                       <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-12">
-                        <div className="rounded-xl border-4 border-red-500 px-4 py-2 text-4xl font-black tracking-[0.2em] text-red-500 uppercase select-none">
-                          Closed
+                        <div className={`rounded-xl border-4 ${isDefaulted ? 'border-error' : 'border-red-500'} px-4 py-2 text-4xl font-black tracking-[0.2em] ${isDefaulted ? 'text-error' : 'text-red-500'} uppercase select-none`}>
+                          {loan.status}
                         </div>
                       </div>
                     )}
@@ -147,7 +161,7 @@ const Loans = () => {
                       <div>
                         <span
                           className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase ${
-                            isClosed
+                            isInactive
                               ? 'bg-outline/10 text-outline'
                               : loan.type === 'given'
                                 ? 'bg-secondary/10 text-secondary'
@@ -175,12 +189,18 @@ const Loans = () => {
                         <span>Started</span>
                         <span>{formatDate(loan.startDate)}</span>
                       </div>
+                      {loan.interestRate !== undefined && (
+                        <div className="flex justify-between">
+                          <span>Interest Rate</span>
+                          <span>{loan.interestRate}% p.a.</span>
+                        </div>
+                      )}
                       {loan.dueDate && (
                         <div className="flex justify-between">
                           <span>Due Date</span>
                           <span
                             className={
-                              !isClosed && new Date(loan.dueDate) < new Date() ? 'text-error' : ''
+                              !isInactive && new Date(loan.dueDate) < new Date() ? 'text-error' : ''
                             }
                           >
                             {formatDate(loan.dueDate)}
@@ -190,7 +210,7 @@ const Loans = () => {
                       <div className="flex justify-between">
                         <span>Status</span>
                         <span
-                          className={`capitalize ${isClosed ? 'text-outline' : 'text-secondary'}`}
+                          className={`capitalize ${isClosed ? 'text-outline' : isDefaulted ? 'text-error' : 'text-secondary'}`}
                         >
                           {loan.status}
                         </span>
@@ -199,17 +219,28 @@ const Loans = () => {
 
                     <div className="mt-4 flex items-center justify-between border-t border-outline-variant/10 pt-4">
                       <div className="flex gap-2">
-                        {!isClosed && (
-                          <button
-                            onClick={() => {
-                              setEditingLoan(loan);
-                              setIsAddModalOpen(true);
-                            }}
-                            className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-variant/30 text-outline transition-all hover:bg-primary/10 hover:text-primary active:scale-90"
-                            title="Edit Loan"
-                          >
-                            ✏️
-                          </button>
+                        {!isInactive && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setEditingLoan(loan);
+                                setIsAddModalOpen(true);
+                              }}
+                              className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-variant/30 text-outline transition-all hover:bg-primary/10 hover:text-primary active:scale-90"
+                              title="Edit Loan"
+                            >
+                              ✏️
+                            </button>
+                            {loan.type === 'given' && (
+                              <button
+                                onClick={() => handleDefault(loan.id)}
+                                className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-variant/30 text-error transition-all hover:bg-error-container/30 hover:text-error active:scale-90"
+                                title="Mark as Defaulted"
+                              >
+                                ❌
+                              </button>
+                            )}
+                          </>
                         )}
                         <button
                           onClick={() => handleDelete(loan.id)}
@@ -227,7 +258,7 @@ const Loans = () => {
                         >
                           📋
                         </button>
-                        {!isClosed && (
+                        {!isInactive && (
                           <button
                             onClick={() => setSettlementLoan(loan)}
                             className="flex h-9 w-12 items-center justify-center gap-1 rounded-xl bg-secondary px-2 text-on-secondary shadow-md shadow-secondary/20 transition-all hover:scale-105 active:scale-95"

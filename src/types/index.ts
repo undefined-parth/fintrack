@@ -61,7 +61,7 @@ export interface Transaction {
 
 // ─── Loan ────────────────────────────────────────────────────────────────────
 export type LoanType = 'given' | 'taken'
-export type LoanStatus = 'active' | 'closed'
+export type LoanStatus = 'active' | 'closed' | 'defaulted'
 
 export interface Loan {
   id: string
@@ -72,6 +72,7 @@ export interface Loan {
   dueDate?: string
   totalAmount: number
   remainingAmount: number
+  interestRate?: number      // annual percentage
   status: LoanStatus
   accountId: string
   createdAt: string

@@ -87,11 +87,12 @@ const TransactionListItem = ({
 }: TransactionListItemProps) => {
   const type = transaction.type === 'loan' ? 'loan' : transaction.type;
   const isLoan = transaction.type === 'loan';
+  const isDefault = transaction.categoryId === 'sys_loan_default';
 
   // ─── Compact variant (Dashboard) ────────────────────────────────────────────
   if (variant === 'compact') {
     return (
-      <div 
+      <div
         onClick={() => onEdit?.(transaction.id)}
         className="group flex cursor-pointer items-center gap-3 rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3.5 transition-colors hover:border-outline-variant/50"
       >
@@ -100,9 +101,7 @@ const TransactionListItem = ({
 
         {/* Info */}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[14px] font-semibold text-on-surface">
-            {transaction.title}
-          </p>
+          <p className="truncate text-[14px] font-semibold text-on-surface">{transaction.title}</p>
           <p className="mt-0.5 text-[11px] text-outline">
             {category?.name ?? '—'} · {formatDate(transaction.date)}
           </p>
@@ -123,7 +122,7 @@ const TransactionListItem = ({
   const styles = getTransactionStyles(transaction);
 
   return (
-    <div 
+    <div
       onClick={() => onEdit?.(transaction.id)}
       className="group flex cursor-pointer items-center gap-3 rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3.5 transition-colors hover:border-outline-variant/50"
     >
@@ -174,7 +173,7 @@ const TransactionListItem = ({
 
         {/* Hover Controls */}
         <div className="flex items-center gap-2 opacity-0 transition-all group-hover:opacity-100">
-          {!isLoan ? (
+          {!isLoan && !isDefault ? (
             <>
               <button
                 type="button"
@@ -202,7 +201,9 @@ const TransactionListItem = ({
           ) : (
             <div
               className="flex h-10 w-10 cursor-help items-center justify-center rounded-xl bg-surface-variant/30 text-outline/30"
-              title="Loan transactions are protected"
+              title={
+                isLoan ? 'Loan transactions are protected' : 'Default transactions are protected'
+              }
             >
               🔒
             </div>
