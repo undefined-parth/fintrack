@@ -56,7 +56,16 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   const [loanId, setLoanId] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const [error, setError] = useState('');
+
+  const tagSuggestions = useMemo(() => {
+    if (!tagInput.trim()) return [];
+    const allUserTags = currentUser?.tags || [];
+    return allUserTags
+      .filter((t) => t.toLowerCase().includes(tagInput.toLowerCase()) && !tags.includes(t))
+      .slice(0, 5);
+  }, [currentUser?.tags, tagInput, tags]);
 
   // Sync state when modal opens or editingTransaction changes
   useEffect(() => {
@@ -134,10 +143,10 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       res = addTransaction(payload);
     }
 
-    if (res.ok) {
+    if (res && res.ok) {
       onClose();
     } else {
-      setError(res.error || 'Failed to save transaction');
+      setError(res?.error || 'Failed to save transaction');
     }
   };
 
@@ -145,6 +154,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       setTags([...tags, tagInput.trim()]);
       setTagInput('');
+      setShowTagSuggestions(false);
     }
   };
 
@@ -165,6 +175,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             {editingTransaction ? 'Edit Transaction' : 'Add Transaction'}
           </h2>
           <button
+            type="button"
             onClick={onClose}
             className="rounded-full p-2 text-outline hover:bg-surface-variant hover:text-on-surface"
           >
@@ -375,15 +386,49 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                   </span>
                 ))}
               </div>
-              <div className="flex gap-2">
+              <div className="relative flex gap-2">
                 <input
                   type="text"
                   value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                  onFocus={() => setShowTagSuggestions(true)}
+                  onChange={(e) => {
+                    setTagInput(e.target.value);
+                    setShowTagSuggestions(true);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddTag();
+                    }
+                  }}
+                  onBlur={() => setShowTagSuggestions(false)}
                   placeholder="Add tag..."
                   className="flex-1 rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-2 text-sm text-on-surface focus:border-primary/50 focus:outline-none"
                 />
+
+                {showTagSuggestions && tagSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 z-60 mt-1 w-full overflow-hidden rounded-xl border border-outline-variant/20 bg-surface-container shadow-xl">
+                    <ul>
+                      {tagSuggestions.map((suggestion) => (
+                        <li
+                          key={suggestion}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            if (!tags.includes(suggestion)) {
+                              setTags([...tags, suggestion]);
+                            }
+                            setTagInput('');
+                            setShowTagSuggestions(false);
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-sm text-on-surface transition-colors hover:bg-surface-variant/30"
+                        >
+                          {suggestion}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 <button
                   type="button"
                   onClick={handleAddTag}

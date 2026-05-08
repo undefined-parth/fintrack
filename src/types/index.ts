@@ -6,6 +6,7 @@ export interface User {
   defaultCurrency: string   // e.g., 'INR', 'USD' (Currency Code)
   currencyIcon: string      // e.g., '₹', '$' (Currency Symbol)
   avatar?: string           // base64 or URL
+  tags: string[]            // all tags used by this user
   createdAt: string         // ISO string
   updatedAt: string
 }
