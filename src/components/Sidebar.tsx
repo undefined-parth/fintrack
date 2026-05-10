@@ -73,23 +73,23 @@ const Sidebar = () => {
                 } `
               }
             >
-              <item.icon
-                className={`h-5 w-5 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6`}
-              />
-              <span className="text-[11px] font-black tracking-[0.2em] uppercase">
-                {item.label}
-              </span>
-              {/* Active Indicator */}
-              <NavLink to={item.path}>
-                {({ isActive }) =>
-                  isActive && (
+              {({ isActive }) => (
+                <>
+                  <item.icon
+                    className={`h-5 w-5 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6`}
+                  />
+                  <span className="text-[11px] font-black tracking-[0.2em] uppercase">
+                    {item.label}
+                  </span>
+                  {/* Active Indicator */}
+                  {isActive && (
                     <motion.div
                       layoutId="activeIndicator"
                       className="ml-auto h-1 w-1 rounded-full bg-primary shadow-[0_0_10px_#799dff]"
                     />
-                  )
-                }
-              </NavLink>
+                  )}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
