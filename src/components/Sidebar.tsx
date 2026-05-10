@@ -32,7 +32,7 @@ const Sidebar = () => {
   const getNetWorth = (id: string | undefined): number => {
     if (!id) return 0;
     const accounts = getAccountsForUser(id);
-    return accounts.reduce((acc, a) => acc + Number(a.balance!), 0);
+    return accounts.reduce((acc, a) => acc + (Number(a.balance) || 0), 0);
   };
 
   const handleLogout = () => {
