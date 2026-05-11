@@ -42,7 +42,7 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="relative z-50 flex h-screen w-64 flex-col justify-between border-r border-white/5 bg-[#06080c] px-4 pt-10 pb-4 shadow-2xl">
+    <aside className="relative z-50 hidden h-screen w-64 flex-col justify-between border-r border-white/5 bg-[#06080c] px-4 pt-10 pb-4 shadow-2xl md:flex">
       {/* Background Glow */}
       <div className="pointer-events-none absolute top-0 left-0 h-32 w-full bg-primary/5 blur-[80px]" />
 
