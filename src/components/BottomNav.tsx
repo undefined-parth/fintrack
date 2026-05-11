@@ -11,7 +11,7 @@ const BottomNav = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 z-100 flex w-full items-center justify-around border-t border-white/5 bg-[#06080c]/80 px-2 py-3 backdrop-blur-xl md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-100 flex w-full items-center justify-around border-t border-white/5 bg-[`#06080c`]/80 px-2 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] backdrop-blur-xl md:hidden">
       {navItems.map((item) => (
         <NavLink
           key={item.path}
