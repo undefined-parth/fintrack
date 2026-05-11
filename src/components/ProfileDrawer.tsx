@@ -74,7 +74,12 @@ const ProfileDrawer = ({ isOpen, onClose }: ProfileDrawerProps) => {
               <h2 className="text-sm font-black tracking-[0.3em] text-primary uppercase">
                 Profile Info
               </h2>
-              <button onClick={onClose} className="rounded-xl bg-white/5 p-2 text-outline">
+              <button
+                type="button"
+                aria-label="Close profile drawer"
+                onClick={onClose}
+                className="rounded-xl bg-white/5 p-2 text-outline"
+              >
                 <X size={20} />
               </button>
             </div>
