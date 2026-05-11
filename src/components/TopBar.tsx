@@ -23,11 +23,13 @@ const TopBar = () => {
         </div>
 
         {/* Profile Section */}
-        <button 
+        <button
+          type="button"
+          aria-label="Open profile menu"
           onClick={() => setIsDrawerOpen(true)}
-          className="relative group focus:outline-none"
+          className="group relative rounded-full focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[`#06080c`] focus-visible:outline-none"
         >
-          <div className="absolute inset-0 animate-pulse rounded-full bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-0 animate-pulse rounded-full bg-primary/20 opacity-0 blur-md transition-opacity group-hover:opacity-100" />
           <img
             alt="Profile"
             className="relative h-9 w-9 rounded-full border border-white/10 ring-2 ring-transparent transition-all group-hover:ring-primary/20"
@@ -36,10 +38,7 @@ const TopBar = () => {
         </button>
       </header>
 
-      <ProfileDrawer 
-        isOpen={isDrawerOpen} 
-        onClose={() => setIsDrawerOpen(false)} 
-      />
+      <ProfileDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
 
       <style>{`
         .text-outline-variant {
