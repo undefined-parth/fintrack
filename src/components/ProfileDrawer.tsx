@@ -26,6 +26,16 @@ const ProfileDrawer = ({ isOpen, onClose }: ProfileDrawerProps) => {
   ];
 
   return (
+import { useEffect, useRef } from 'react';
+
+const ProfileDrawer = ({ isOpen, onClose }: ProfileDrawerProps) => {
+  const drawerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen) drawerRef.current?.focus();
+  }, [isOpen]);
+
+  return (
     <AnimatePresence>
       {isOpen && (
         <>
@@ -40,11 +50,25 @@ const ProfileDrawer = ({ isOpen, onClose }: ProfileDrawerProps) => {
 
           {/* Drawer */}
           <motion.div
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Profile menu"
+            tabIndex={-1}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') onClose();
+            }}
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 z-120 h-full w-[80%] max-w-sm border-l border-white/10 bg-[#06080c] p-6 shadow-2xl md:hidden"
+            className="fixed top-0 right-0 z-120 h-full w-[80%] max-w-sm border-l border-white/10 bg-[`#06080c`] p-6 shadow-2xl md:hidden"
+          />
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
           >
             <div className="mb-8 flex items-center justify-between">
               <h2 className="text-sm font-black tracking-[0.3em] text-primary uppercase">
