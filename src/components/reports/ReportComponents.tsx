@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import { motion } from 'framer-motion';
 import { type LucideIcon, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
-import { memo } from 'react';
+import { memo, type ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 function cn(...inputs: ClassValue[]) {
@@ -14,7 +14,7 @@ export const GlassCard = memo(
     className,
     onClick,
   }: {
-    children: React.ReactNode;
+    children: ReactNode;
     className?: string;
     glowColor?: string;
     onClick?: () => void;
