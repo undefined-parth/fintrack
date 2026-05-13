@@ -87,7 +87,9 @@ export const StatCard = memo(
         {value}
       </p>
 
-      <p className="text-[8px] font-bold tracking-widest text-outline/50 uppercase">{subValue}</p>
+      {subValue && (
+        <p className="text-[8px] font-bold tracking-widest text-outline/50 uppercase">{subValue}</p>
+      )}
     </GlassCard>
   )
 );
