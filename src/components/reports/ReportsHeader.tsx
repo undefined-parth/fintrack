@@ -13,7 +13,7 @@ export const ReportsHeader = memo(({ timeRange, setTimeRange }: ReportsHeaderPro
       <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
         <div className="mb-4 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 backdrop-blur-3xl">
-            <Cpu className="animate-spin-slow h-5 w-5 text-primary" />
+            <Cpu className="animate-spin-slow h-5 w-5 text-primary" aria-hidden="true" />
           </div>
           <div>
             <p className="text-[10px] leading-none font-black tracking-[0.6em] text-primary uppercase">
@@ -33,7 +33,11 @@ export const ReportsHeader = memo(({ timeRange, setTimeRange }: ReportsHeaderPro
       </motion.div>
 
       <div className="flex flex-wrap items-center gap-4">
-        <button className="flex items-center gap-2 rounded-2xl border border-white/5 bg-white/3 px-6 py-3 text-[11px] font-black tracking-widest text-outline backdrop-blur-3xl transition-all hover:text-primary">
+        <button
+          aria-label="Export reports data"
+          className="flex items-center gap-2 rounded-2xl border border-white/5 bg-white/3 px-6 py-3 text-[11px] font-black tracking-widest text-outline backdrop-blur-3xl transition-all hover:text-primary"
+        >
+          {/* TODO: Add export functionality */}
           <Download size={16} /> EXPORT
         </button>
         <div className="flex rounded-2xl border border-white/5 bg-white/2 p-1.5 shadow-inner backdrop-blur-3xl">
@@ -41,6 +45,8 @@ export const ReportsHeader = memo(({ timeRange, setTimeRange }: ReportsHeaderPro
             <button
               key={m}
               onClick={() => setTimeRange(m)}
+              aria-pressed={timeRange === m}
+              aria-label={`${m} month time range`}
               className={`relative px-8 py-2.5 text-[10px] font-black tracking-[0.2em] uppercase transition-all ${timeRange === m ? 'text-on-primary' : 'text-outline hover:text-white'}`}
             >
               {timeRange === m && (
