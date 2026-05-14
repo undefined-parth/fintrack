@@ -16,10 +16,10 @@ export const ReportsHeader = memo(({ timeRange, setTimeRange }: ReportsHeaderPro
             <Cpu className="animate-spin-slow h-5 w-5 text-primary" aria-hidden="true" />
           </div>
           <div>
-            <p className="text-[10px] leading-none font-black tracking-[0.6em] text-primary uppercase">
+            <p className="text-xs leading-none font-black tracking-[0.6em] text-primary uppercase">
               Intelligence.Node
             </p>
-            <p className="mt-1 text-[8px] font-bold tracking-widest text-outline uppercase">
+            <p className="mt-1 text-[10px] font-bold tracking-widest text-outline uppercase">
               Status: Deep Scan Active
             </p>
           </div>
@@ -47,7 +47,7 @@ export const ReportsHeader = memo(({ timeRange, setTimeRange }: ReportsHeaderPro
               onClick={() => setTimeRange(m)}
               aria-pressed={timeRange === m}
               aria-label={`${m} month time range`}
-              className={`relative px-8 py-2.5 text-[10px] font-black tracking-[0.2em] uppercase transition-all ${timeRange === m ? 'text-on-primary' : 'text-outline hover:text-white'}`}
+              className={`relative px-8 py-2.5 text-xs font-black tracking-[0.2em] uppercase transition-all ${timeRange === m ? 'text-on-primary' : 'text-outline hover:text-white'}`}
             >
               {timeRange === m && (
                 <motion.div
