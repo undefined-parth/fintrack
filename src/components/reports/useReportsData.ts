@@ -62,7 +62,8 @@ export const useReportsData = ({
 
   const dateRange = useMemo(() => {
     const end = endOfDay(new Date());
-    const start = startOfDay(subMonths(end, timeRange));
+    const normalizedRange = Math.max(1, Math.trunc(timeRange));
+    const start = startOfDay(subMonths(end, normalizedRange - 1));
     return { start, end };
   }, [timeRange]);
 
