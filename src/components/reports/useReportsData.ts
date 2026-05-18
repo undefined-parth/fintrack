@@ -208,6 +208,7 @@ export const useReportsData = ({
 
     return filteredTxs
       .filter((t) => t.amount > threshold)
+      .sort((a, b) => b.amount - a.amount)
       .map((t) => ({
         date: t.date,
         label: t.title,
