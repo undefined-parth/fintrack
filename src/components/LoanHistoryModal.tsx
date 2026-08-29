@@ -28,9 +28,9 @@ const LoanHistoryModal: React.FC<ModalProps & { loan: Loan | null }> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="animate-in fade-in zoom-in relative w-full max-w-2xl rounded-3xl border border-outline-variant/30 bg-surface-container shadow-2xl transition-all duration-300">
-        <div className="flex items-center justify-between border-b border-outline-variant/20 px-6 py-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="animate-in fade-in zoom-in relative w-full max-w-2xl rounded-2xl border border-outline-variant/15 bg-surface-container shadow-2xl transition-all duration-300">
+        <div className="flex items-center justify-between border-b border-outline-variant/15 px-6 py-4">
           <h2 className="text-xl font-bold text-on-surface">Loan History: {loan.personName}</h2>
           <button
             onClick={onClose}

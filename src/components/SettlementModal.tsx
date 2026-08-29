@@ -60,9 +60,9 @@ const SettlementModal: React.FC<ModalProps & { loan: Loan | null }> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="animate-in fade-in zoom-in relative w-full max-w-lg rounded-3xl border border-outline-variant/30 bg-surface-container shadow-2xl transition-all duration-300">
-        <div className="flex items-center justify-between border-b border-outline-variant/20 px-6 py-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="animate-in fade-in zoom-in relative w-full max-w-lg rounded-2xl border border-outline-variant/15 bg-surface-container shadow-2xl transition-all duration-300">
+        <div className="flex items-center justify-between border-b border-outline-variant/15 px-6 py-4">
           <h2 className="text-xl font-bold text-on-surface">Record Settlement</h2>
           <button
             onClick={onClose}
@@ -73,10 +73,10 @@ const SettlementModal: React.FC<ModalProps & { loan: Loan | null }> = ({
         </div>
         <form onSubmit={handleSubmit} className="space-y-4 p-6">
           {error && (
-            <div className="rounded-xl bg-error-container/20 p-3 text-sm text-error">{error}</div>
+            <div className="rounded-xl bg-tertiary/10 p-3 text-sm text-tertiary">{error}</div>
           )}
 
-          <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-low p-4">
+          <div className="rounded-2xl border border-outline-variant/10 bg-surface p-4">
             <p className="text-xs font-semibold tracking-wider text-outline uppercase">Loan for</p>
             <p className="text-lg font-bold text-on-surface">{loan.personName}</p>
             <p className="mt-1 text-xs text-outline capitalize">
@@ -95,7 +95,7 @@ const SettlementModal: React.FC<ModalProps & { loan: Loan | null }> = ({
                 max={loan.remainingAmount}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:border-primary/50 focus:outline-none"
+                className="w-full rounded-xl border border-outline-variant/15 bg-surface px-4 py-3 text-sm text-on-surface focus:border-primary/30 focus:outline-none"
               />
             </div>
             <div>
@@ -104,7 +104,7 @@ const SettlementModal: React.FC<ModalProps & { loan: Loan | null }> = ({
                 required
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
-                className="w-full rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:border-primary/50 focus:outline-none"
+                className="w-full rounded-xl border border-outline-variant/15 bg-surface px-4 py-3 text-sm text-on-surface focus:border-primary/30 focus:outline-none"
               >
                 {accounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
@@ -123,7 +123,7 @@ const SettlementModal: React.FC<ModalProps & { loan: Loan | null }> = ({
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:border-primary/50 focus:outline-none"
+                className="w-full rounded-xl border border-outline-variant/15 bg-surface px-4 py-3 text-sm text-on-surface focus:border-primary/30 focus:outline-none"
               />
             </div>
             <div>
@@ -133,7 +133,7 @@ const SettlementModal: React.FC<ModalProps & { loan: Loan | null }> = ({
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:border-primary/50 focus:outline-none"
+                className="w-full rounded-xl border border-outline-variant/15 bg-surface px-4 py-3 text-sm text-on-surface focus:border-primary/30 focus:outline-none"
               />
             </div>
           </div>
@@ -142,13 +142,13 @@ const SettlementModal: React.FC<ModalProps & { loan: Loan | null }> = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-2xl border border-outline-variant/30 py-4 text-sm font-bold text-outline hover:bg-surface-variant/30"
+              className="flex-1 rounded-2xl border border-outline-variant/15 py-3 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-highest"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 rounded-2xl bg-secondary py-4 text-sm font-bold text-on-secondary shadow-lg shadow-secondary/20 hover:scale-[1.02] active:scale-[0.98]"
+              className="flex-1 rounded-xl bg-secondary py-3 text-sm font-semibold text-on-secondary transition-all duration-200 hover:bg-secondary-dim active:scale-[0.98]"
             >
               Record Settlement
             </button>
