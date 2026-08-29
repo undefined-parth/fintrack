@@ -29,17 +29,17 @@ const ProfileAvatar = ({
       }}
       className="profile-card group flex flex-col items-center transition-all duration-300"
     >
-      <div className="profile-circle relative mb-6 h-32 w-32 overflow-hidden rounded-full border-4 border-slate-800 transition-all duration-300 md:h-44 md:w-44">
+      <div className="profile-circle relative mb-6 h-32 w-32 overflow-hidden rounded-full border-4 border-outline-variant/20 transition-all duration-300 md:h-44 md:w-44">
         <img alt="User 1 avatar" className="h-full w-full object-cover" src={avatar} />
         <div className="absolute inset-0 bg-primary/10 opacity-0 transition-opacity group-hover:opacity-100"></div>
 
         {isEditingProfile && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50 transition-opacity">
-            <span className="material-symbols-outlined text-3xl text-white md:text-4xl">edit</span>
+            <span className="text-3xl text-on-surface md:text-4xl">✏️</span>
           </div>
         )}
       </div>
-      <span className="profile-name text-lg font-medium text-slate-400 transition-colors md:text-xl">
+      <span className="profile-name text-lg font-medium text-on-surface-variant transition-colors md:text-xl">
         {name}
       </span>
     </button>
@@ -62,9 +62,9 @@ function App() {
 
   return (
     <>
-      <div className="flex min-h-screen items-center justify-center font-sans text-slate-100">
+      <div className="flex min-h-screen items-center justify-center font-sans text-on-surface">
         <div className="w-full max-w-4xl px-6 py-12 text-center">
-          <h1 className="mb-16 text-4xl font-bold tracking-tight text-white md:text-5xl">
+          <h1 className="mb-16 font-display text-4xl font-bold tracking-tight text-on-surface md:text-5xl">
             Who's Using?
           </h1>
           <div className="flex flex-wrap justify-center gap-8 md:gap-16">
@@ -85,12 +85,12 @@ function App() {
               to="/add-user"
               className="profile-card group flex flex-col items-center transition-all duration-300"
             >
-              <div className="profile-circle mb-6 flex h-32 w-32 items-center justify-center rounded-full border-4 border-dashed border-slate-700 bg-slate-900/50 transition-all duration-300 group-hover:border-primary group-hover:bg-primary/5 md:h-44 md:w-44">
-                <span className="material-symbols-outlined text-5xl text-slate-500 transition-colors group-hover:text-primary md:text-6xl">
-                  add
+              <div className="profile-circle mb-6 flex h-32 w-32 items-center justify-center rounded-full border-4 border-dashed border-outline-variant/20 bg-surface-container transition-all duration-300 group-hover:border-primary group-hover:bg-primary/5 md:h-44 md:w-44">
+                <span className="text-5xl text-on-surface-variant transition-colors group-hover:text-primary md:text-6xl">
+                  +
                 </span>
               </div>
-              <span className="profile-name text-lg font-medium text-slate-400 transition-colors md:text-xl">
+              <span className="profile-name text-lg font-medium text-on-surface-variant transition-colors md:text-xl">
                 Add User
               </span>
             </Link>
@@ -99,7 +99,7 @@ function App() {
           <div className="mt-24">
             <button
               onClick={() => setIsEditingProfile(!isEditingProfile)}
-              className="rounded-full border border-slate-700 px-8 py-3 text-sm font-semibold tracking-widest text-slate-500 uppercase transition-all duration-300 hover:border-white hover:text-white"
+              className="rounded-full border border-outline-variant/20 px-8 py-3 text-sm font-semibold tracking-widest text-on-surface-variant uppercase transition-all duration-300 hover:border-primary/30 hover:text-primary"
             >
               {isEditingProfile ? 'Done' : 'Manage Profiles'}
             </button>
