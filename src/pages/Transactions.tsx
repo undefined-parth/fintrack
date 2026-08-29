@@ -7,9 +7,10 @@ import { useAccountStore } from '../stores/useAccountStore';
 import AddTransactionModal from '../components/AddTransactionModal';
 import StatsCard from '@/components/StatsCard';
 import Select from '@/components/ui/Select';
-import IconPlus from '../assets/icons/IconPlus';
 import TransactionListItem from '@/components/TransactionListItem';
+import TransactionDetailsModal from '../components/TransactionDetailsModal';
 import type { Transaction } from '../types';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   isWithinInterval,
   startOfMonth,
@@ -19,6 +20,7 @@ import {
   startOfDay,
   endOfDay,
 } from 'date-fns';
+import { Search, Plus, SlidersHorizontal, Info, ArrowUpDown, Calendar, Tag } from 'lucide-react';
 
 const Transactions = () => {
   const currentUser = useUserStore((state) => state.currentUser);
@@ -31,9 +33,8 @@ const Transactions = () => {
         deleteTransaction: state.deleteTransaction,
       }))
     );
-  const { userCategories, getAllCategories } = useCategoryStore(
+  const { getAllCategories } = useCategoryStore(
     useShallow((state) => ({
-      userCategories: state.userCategories,
       getAllCategories: state.getAllCategories,
     }))
   );
@@ -45,6 +46,9 @@ const Transactions = () => {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [accountFilter, setAccountFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [selectedDetailTransaction, setSelectedDetailTransaction] = useState<Transaction | null>(
+    null
+  );
 
   // Advanced Filter State
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
@@ -60,18 +64,15 @@ const Transactions = () => {
 
   const userTransactions = useMemo(() => {
     return getTransactionsForUser(userId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, getTransactionsForUser, transactions]);
+  }, [userId, getTransactionsForUser]);
 
   const categories = useMemo(() => {
     return getAllCategories(userId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, getAllCategories, userCategories]);
+  }, [userId, getAllCategories]);
 
   const { totalIncome, totalExpense, net } = useMemo(() => {
     return getSummary(userId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, getSummary, transactions]);
+  }, [userId, getSummary]);
 
   // Extract all unique tags
   const availableTags = useMemo(() => {
@@ -173,11 +174,19 @@ const Transactions = () => {
 
   const handleDelete = useCallback(
     (id: string) => {
-      if (confirm('Are you sure you want to delete this transaction?')) {
-        deleteTransaction(id);
-      }
+      deleteTransaction(id);
     },
     [deleteTransaction]
+  );
+
+  const handleViewDetail = useCallback(
+    (id: string) => {
+      const tx = transactions.find((t) => t.id === id);
+      if (tx) {
+        setSelectedDetailTransaction(tx);
+      }
+    },
+    [transactions]
   );
 
   const handleCloseModal = useCallback(() => {
@@ -204,26 +213,27 @@ const Transactions = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-surface px-8 pt-7 pb-10 font-sans text-on-surface">
+    <div className="min-h-screen bg-surface px-8 pt-7 pb-12 font-sans text-on-surface">
       <div className="space-y-8">
         {/* Header Section */}
-        <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <p className="mb-1 text-[10px] font-bold tracking-[0.15em] text-outline uppercase">
-              Manage your income and expenses
-            </p>
-            <h1 className="text-[22px] font-bold tracking-tight text-on-background">
+            <h1 className="font-display text-[22px] font-bold tracking-tight text-on-surface">
               Transactions
             </h1>
+            <p className="mt-1 text-xs text-on-surface-variant">
+              Manage your income, expenses, and asset accounts
+            </p>
           </div>
+
           <button
             onClick={() => {
               setEditingTransaction(null);
               setIsModalOpen(true);
             }}
-            className="flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold outline transition-all hover:-translate-y-0.5 hover:bg-primary hover:text-on-primary hover:shadow-[0_1px_20px_-6px_rgba(121,157,255,0.6)] active:scale-95 sm:w-auto"
+            className="flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary shadow-sm transition-all duration-200 hover:bg-primary-dim active:scale-[0.98] sm:w-auto"
           >
-            <IconPlus /> Add Transaction
+            <Plus size={16} /> Add Transaction
           </button>
         </div>
 
@@ -242,26 +252,25 @@ const Transactions = () => {
 
         {/* Filters & Search */}
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             {/* Search */}
             <div className="group relative flex-1">
-              <span className="absolute top-1/2 left-4 -translate-y-1/2 opacity-40">🔍</span>
-
+              <Search className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-outline/50 transition-colors group-focus-within:text-primary/70" />
               <input
                 type="text"
-                placeholder="Search by tags, description, title, etc...."
+                placeholder="Search by tags, description, title..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-2xl border border-transparent bg-surface-container-low/80 py-3.5 pr-4 pl-12 text-sm font-medium text-on-surface placeholder:text-outline/50 focus:border-primary/40 focus:bg-surface-container focus:ring-4 focus:ring-primary/10 focus:outline-none"
+                className="w-full rounded-2xl border border-outline-variant/15 bg-surface-container py-3.5 pr-4 pl-12 text-sm font-medium text-on-surface transition-all duration-200 placeholder:text-outline/50 focus:border-primary/40 focus:bg-surface-container focus:ring-4 focus:ring-primary/10 focus:outline-none"
               />
             </div>
 
             {/* Select Filters */}
             <div className="flex flex-wrap gap-2">
-              {/* Account Select */}
               <Select
                 value={accountFilter}
                 onChange={setAccountFilter}
+                className="w-40"
                 options={[
                   { label: 'All Accounts', value: 'all' },
                   ...accounts.map((acc) => ({
@@ -271,10 +280,10 @@ const Transactions = () => {
                 ]}
               />
 
-              {/* Category Select */}
               <Select
                 value={categoryFilter}
                 onChange={setCategoryFilter}
+                className="w-40"
                 options={[
                   { label: 'All Categories', value: 'all' },
                   ...categories.map((cat) => ({
@@ -286,205 +295,230 @@ const Transactions = () => {
 
               <button
                 onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
-                className={`rounded-full border px-4 py-2 text-xs font-semibold transition-all ${
+                className={`flex cursor-pointer items-center gap-1.5 rounded-xl border px-4 py-2.5 text-xs font-semibold transition-all duration-250 ${
                   isAdvancedOpen
-                    ? 'border-primary/30 bg-primary text-on-primary shadow-md'
-                    : 'border-transparent bg-surface-container-low text-outline shadow-sm hover:bg-surface-variant/60 hover:text-on-surface'
+                    ? 'border-primary/30 bg-primary/10 text-primary'
+                    : 'border-outline-variant/15 bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
                 }`}
               >
-                {isAdvancedOpen ? 'Close Filters' : 'Advanced Filters'}
+                <SlidersHorizontal size={13} />
+                <span>{isAdvancedOpen ? 'Hide Filters' : 'Advanced'}</span>
               </button>
-            </div>
-
-            {/* Type Filters */}
-            <div className="flex flex-wrap gap-2">
-              {['all', 'income', 'expense', 'transfer', 'loan'].map((t) => {
-                const active = typeFilter === t;
-
-                return (
-                  <button
-                    key={t}
-                    onClick={() => setTypeFilter(t)}
-                    className={`rounded-full px-4 py-2 text-xs font-semibold capitalize transition-all ${
-                      active
-                        ? 'bg-primary text-on-primary shadow-md shadow-primary/20'
-                        : 'bg-surface-container-low text-outline hover:bg-surface-variant/60 hover:text-on-surface'
-                    } `}
-                  >
-                    {t}
-                  </button>
-                );
-              })}
             </div>
           </div>
 
-          {/* Advanced Filters Panel */}
-          {isAdvancedOpen && (
-            <div className="animate-in fade-in slide-in-from-top-4 space-y-6 rounded-2xl border border-outline-variant/20 bg-surface-container-low/40 p-6 duration-300">
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                {/* Sort By */}
-                <div>
-                  <label className="mb-2 block text-[10px] font-bold tracking-widest text-outline uppercase">
-                    Sort By
-                  </label>
-                  <Select
-                    value={sortBy}
-                    onChange={setSortBy}
-                    className="w-full"
-                    options={[
-                      { label: 'Date (Newest)', value: 'date_desc' },
-                      { label: 'Date (Oldest)', value: 'date_asc' },
-                      { label: 'Amount (Highest)', value: 'amount_desc' },
-                      { label: 'Amount (Lowest)', value: 'amount_asc' },
-                      { label: 'Title (A-Z)', value: 'title_asc' },
-                    ]}
-                  />
-                </div>
+          {/* Type Filters */}
+          <div className="flex flex-wrap gap-1.5">
+            {['all', 'income', 'expense', 'transfer', 'loan'].map((t) => {
+              const active = typeFilter === t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTypeFilter(t)}
+                  className={`cursor-pointer rounded-xl px-4 py-2 text-xs font-semibold capitalize transition-all duration-200 ${
+                    active
+                      ? 'bg-primary text-on-primary shadow-sm'
+                      : 'bg-surface-container/50 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                  }`}
+                >
+                  {t}
+                </button>
+              );
+            })}
+          </div>
 
-                {/* Date Range */}
-                <div>
-                  <label className="mb-2 block text-[10px] font-bold tracking-widest text-outline uppercase">
-                    Date Range
-                  </label>
-                  <Select
-                    value={dateRange}
-                    onChange={setDateRange}
-                    className="w-full"
-                    options={[
-                      { label: 'All Time', value: 'all' },
-                      { label: 'This Month', value: 'this_month' },
-                      { label: 'Last Month', value: 'last_month' },
-                      { label: 'Custom Range', value: 'custom' },
-                    ]}
-                  />
-                </div>
-
-                {/* Custom Dates (if custom range selected) */}
-                {dateRange === 'custom' && (
-                  <div className="flex items-end gap-2">
-                    <div className="flex-1">
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="w-full rounded-xl border border-transparent bg-surface-container px-3 py-2 text-xs font-medium text-on-surface focus:border-primary/40 focus:outline-none"
+          {/* Advanced Filters Panel (Animated Collapse/Expand) */}
+          <AnimatePresence>
+            {isAdvancedOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="overflow-hidden"
+              >
+                <div className="mt-2 space-y-6 rounded-2xl border border-outline-variant/15 bg-surface-container/30 p-5">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {/* Sort By */}
+                    <div>
+                      <label className="mb-2 flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-on-surface-variant uppercase">
+                        <ArrowUpDown size={11} /> Sort By
+                      </label>
+                      <Select
+                        value={sortBy}
+                        onChange={setSortBy}
+                        className="w-full"
+                        options={[
+                          { label: 'Date (Newest)', value: 'date_desc' },
+                          { label: 'Date (Oldest)', value: 'date_asc' },
+                          { label: 'Amount (Highest)', value: 'amount_desc' },
+                          { label: 'Amount (Lowest)', value: 'amount_asc' },
+                          { label: 'Title (A-Z)', value: 'title_asc' },
+                        ]}
                       />
                     </div>
-                    <div className="flex-1">
-                      <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="w-full rounded-xl border border-transparent bg-surface-container px-3 py-2 text-xs font-medium text-on-surface focus:border-primary/40 focus:outline-none"
+
+                    {/* Date Range */}
+                    <div>
+                      <label className="mb-2 flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-on-surface-variant uppercase">
+                        <Calendar size={11} /> Date Range
+                      </label>
+                      <Select
+                        value={dateRange}
+                        onChange={setDateRange}
+                        className="w-full"
+                        options={[
+                          { label: 'All Time', value: 'all' },
+                          { label: 'This Month', value: 'this_month' },
+                          { label: 'Last Month', value: 'last_month' },
+                          { label: 'Custom Range', value: 'custom' },
+                        ]}
                       />
                     </div>
-                  </div>
-                )}
 
-                {/* Amount Range */}
-                <div>
-                  <label className="mb-2 block text-[10px] font-bold tracking-widest text-outline uppercase">
-                    Amount Range
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      placeholder="Min"
-                      value={minAmount}
-                      onChange={(e) =>
-                        setMinAmount(e.target.value === '' ? '' : Number(e.target.value))
-                      }
-                      className="w-full rounded-xl border border-transparent bg-surface-container px-3 py-2 text-xs font-medium text-on-surface placeholder:text-outline/40 focus:border-primary/40 focus:outline-none"
-                    />
-                    <span className="text-outline/40">—</span>
-                    <input
-                      type="number"
-                      placeholder="Max"
-                      value={maxAmount}
-                      onChange={(e) =>
-                        setMaxAmount(e.target.value === '' ? '' : Number(e.target.value))
-                      }
-                      className="w-full rounded-xl border border-transparent bg-surface-container px-3 py-2 text-xs font-medium text-on-surface placeholder:text-outline/40 focus:border-primary/40 focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Tags cloud */}
-              {availableTags.length > 0 && (
-                <div>
-                  <label className="mb-2 block text-[10px] font-bold tracking-widest text-outline uppercase">
-                    Filter by Tags
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {availableTags.map((tag) => {
-                      const isSelected = selectedTags.includes(tag);
-                      return (
-                        <button
-                          key={tag}
-                          onClick={() => {
-                            if (isSelected) {
-                              setSelectedTags(selectedTags.filter((t) => t !== tag));
-                            } else {
-                              setSelectedTags([...selectedTags, tag]);
-                            }
-                          }}
-                          className={`rounded-full border px-3 py-1 text-[10px] font-bold transition-all ${
-                            isSelected
-                              ? 'border-primary/20 bg-primary text-on-primary'
-                              : 'border-transparent bg-surface-container text-outline hover:bg-surface-variant/60'
-                          }`}
-                        >
-                          #{tag}
-                        </button>
-                      );
-                    })}
-                    {selectedTags.length > 0 && (
-                      <button
-                        onClick={() => setSelectedTags([])}
-                        className="ml-2 text-[10px] font-bold text-error/60 underline underline-offset-4 hover:text-error"
+                    {/* Custom Dates */}
+                    {dateRange === 'custom' && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex items-end gap-2"
                       >
-                        Clear Tags
-                      </button>
+                        <div className="flex-1">
+                          <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="w-full rounded-xl border border-outline-variant/15 bg-surface-container px-3 py-2 text-xs font-semibold text-on-surface focus:border-primary/40 focus:outline-none"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="w-full rounded-xl border border-outline-variant/15 bg-surface-container px-3 py-2 text-xs font-semibold text-on-surface focus:border-primary/40 focus:outline-none"
+                          />
+                        </div>
+                      </motion.div>
                     )}
+
+                    {/* Amount Range */}
+                    <div>
+                      <label className="mb-2 block text-[10px] font-bold tracking-wider text-on-surface-variant uppercase">
+                        Amount Range
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          placeholder="Min"
+                          value={minAmount}
+                          onChange={(e) =>
+                            setMinAmount(e.target.value === '' ? '' : Number(e.target.value))
+                          }
+                          className="w-full rounded-xl border border-outline-variant/15 bg-surface-container px-3 py-2 text-xs font-semibold text-on-surface placeholder:text-outline/40 focus:border-primary/40 focus:ring-4 focus:ring-primary/10 focus:outline-none"
+                        />
+                        <span className="text-outline/35">—</span>
+                        <input
+                          type="number"
+                          placeholder="Max"
+                          value={maxAmount}
+                          onChange={(e) =>
+                            setMaxAmount(e.target.value === '' ? '' : Number(e.target.value))
+                          }
+                          className="w-full rounded-xl border border-outline-variant/15 bg-surface-container px-3 py-2 text-xs font-semibold text-on-surface placeholder:text-outline/40 focus:border-primary/40 focus:ring-4 focus:ring-primary/10 focus:outline-none"
+                        />
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Tags cloud */}
+                  {availableTags.length > 0 && (
+                    <div className="pt-2">
+                      <label className="mb-2 flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-on-surface-variant uppercase">
+                        <Tag size={11} /> Filter by Tags
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {availableTags.map((tag) => {
+                          const isSelected = selectedTags.includes(tag);
+                          return (
+                            <button
+                              key={tag}
+                              onClick={() => {
+                                if (isSelected) {
+                                  setSelectedTags(selectedTags.filter((t) => t !== tag));
+                                } else {
+                                  setSelectedTags([...selectedTags, tag]);
+                                }
+                              }}
+                              className={`cursor-pointer rounded-full border px-3.5 py-1 text-[10px] font-bold transition-all duration-200 ${
+                                isSelected
+                                  ? 'border-primary/20 bg-primary/10 text-primary'
+                                  : 'border-transparent bg-surface-container text-outline hover:bg-surface-container-high hover:text-on-surface'
+                              }`}
+                            >
+                              #{tag}
+                            </button>
+                          );
+                        })}
+                        {selectedTags.length > 0 && (
+                          <button
+                            onClick={() => setSelectedTags([])}
+                            className="ml-2 cursor-pointer text-[10px] font-bold text-tertiary hover:underline"
+                          >
+                            Clear Tags
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Transactions List */}
-        <div className="flex flex-col gap-1.5 overflow-hidden">
+        {/* Transactions List with Framer Motion transitions */}
+        <div className="min-h-75 overflow-hidden">
           {filteredTransactions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center pt-32 text-center">
-              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-surface-container text-4xl opacity-20">
-                📑
+            <div className="flex flex-col items-center justify-center pt-24 text-center">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-outline-variant/10 bg-surface-container text-on-surface-variant">
+                <Info size={20} className="animate-pulse text-outline" />
               </div>
-              <p className="text-xl font-bold text-on-surface">No transactions found</p>
-              <p className="mt-1 text-sm text-outline">
-                Try adjusting your filters or search query
+              <p className="text-base font-bold text-on-surface">No transactions found</p>
+              <p className="mt-1 text-xs text-on-surface-variant">
+                Try adjusting your search query or filters
               </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-1.5">
-              {filteredTransactions.map((tx) => {
-                const category = categories.find((c) => c.id === tx.categoryId);
-                const account = accounts.find((a) => a.id === tx.accountId);
+            <motion.div layout className="flex flex-col gap-1.5">
+              <AnimatePresence mode="popLayout">
+                {filteredTransactions.map((tx) => {
+                  const category = categories.find((c) => c.id === tx.categoryId);
+                  const account = accounts.find((a) => a.id === tx.accountId);
 
-                return (
-                  <TransactionListItem
-                    key={tx.id}
-                    transaction={tx}
-                    category={category}
-                    account={account}
-                    variant="default"
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                );
-              })}
-            </div>
+                  return (
+                    <motion.div
+                      key={tx.id}
+                      layout
+                      initial={{ opacity: 0, y: 8, scale: 0.99 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.99 }}
+                      transition={{ type: 'spring', damping: 24, stiffness: 260 }}
+                    >
+                      <TransactionListItem
+                        transaction={tx}
+                        category={category}
+                        account={account}
+                        variant="default"
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onViewDetail={handleViewDetail}
+                      />
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </motion.div>
           )}
         </div>
       </div>
@@ -493,6 +527,16 @@ const Transactions = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         editingTransaction={editingTransaction}
+      />
+
+      <TransactionDetailsModal
+        isOpen={!!selectedDetailTransaction}
+        onClose={() => setSelectedDetailTransaction(null)}
+        transaction={selectedDetailTransaction}
+        category={categories.find((c) => c.id === selectedDetailTransaction?.categoryId)}
+        account={accounts.find((a) => a.id === selectedDetailTransaction?.accountId)}
+        categories={categories}
+        onSelectTransaction={setSelectedDetailTransaction}
       />
     </div>
   );
