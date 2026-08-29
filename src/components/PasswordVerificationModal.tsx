@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import clsx from 'clsx';
 import type { User } from '@/types';
+import defaultAvatar from '@/assets/avatar.png';
+import { ShieldCheckIcon } from 'lucide-react';
 
 interface PasswordVerificationModalProps {
   isOpen: boolean;
   onClose: () => void;
   nextStep: () => void;
   errorMessage?: string;
-  stepText?: string;
   user: Partial<User> | null;
 }
 
@@ -16,7 +17,6 @@ export const PasswordVerificationModal: React.FC<PasswordVerificationModalProps>
   nextStep,
   onClose,
   errorMessage = 'Incorrect password. Try again.',
-  stepText = 'Step 1 of 2',
   user,
 }) => {
   const [password, setPassword] = useState('');
@@ -47,13 +47,9 @@ export const PasswordVerificationModal: React.FC<PasswordVerificationModalProps>
         }}
       >
         <div className="text-center">
-          {hasError ? (
-            <span className="text-sm font-medium tracking-[0.3em] text-error-red/60 uppercase">
+          {hasError && (
+            <span className="text-tertiary-red/60 text-sm font-medium tracking-[0.3em] uppercase">
               Attempt Failed
-            </span>
-          ) : (
-            <span className="text-sm font-medium tracking-[0.3em] text-slate-500 uppercase opacity-60">
-              {stepText}
             </span>
           )}
         </div>
@@ -69,7 +65,7 @@ export const PasswordVerificationModal: React.FC<PasswordVerificationModalProps>
                     <img
                       alt="User avatar"
                       className="h-full w-full rounded-full object-cover opacity-70 grayscale"
-                      src={user?.avatar || 'src/assets/avatar.png'}
+                      src={user?.avatar || defaultAvatar}
                     />
                   </div>
                   <div className="absolute -inset-4 rounded-full border border-error-red/10"></div>
@@ -82,7 +78,7 @@ export const PasswordVerificationModal: React.FC<PasswordVerificationModalProps>
                     <img
                       alt="User avatar"
                       className="h-full w-full rounded-full object-cover opacity-80 grayscale"
-                      src={user?.avatar || 'src/assets/avatar.png'}
+                      src={user?.avatar || defaultAvatar}
                     />
                   </div>
                   <div className="absolute -inset-4 animate-[spin_20s_linear_infinite] rounded-full border border-white/5"></div>
@@ -100,13 +96,16 @@ export const PasswordVerificationModal: React.FC<PasswordVerificationModalProps>
               Enter your password to continue
             </p>
             {hasError && (
-              <p className="mt-4 animate-pulse text-sm font-medium tracking-wide text-error-red">
+              <p className="text-tertiary-red mt-4 animate-pulse text-sm font-medium tracking-wide">
                 {errorMessage}
               </p>
             )}
           </div>
 
-          <form onSubmit={handleVerify} className="z-20 space-y-4 md:space-y-6">
+          <form
+            onSubmit={(event) => void handleVerify(event)}
+            className="z-20 space-y-4 md:space-y-6"
+          >
             <div
               className={clsx(
                 'relative rounded-xl transition-shadow duration-500',
@@ -117,7 +116,7 @@ export const PasswordVerificationModal: React.FC<PasswordVerificationModalProps>
                 className={clsx(
                   'border-0 border-b-2 bg-transparent text-center text-lg transition-all outline-none placeholder:text-slate-800 focus:ring-0 md:py-6 md:text-4xl',
                   hasError
-                    ? 'border-error-red/50 text-error-red focus:border-error-red'
+                    ? 'text-tertiary-red border-error-red/50 focus:border-error-red'
                     : 'border-white/10 focus:border-white'
                 )}
                 placeholder="••••••••"
@@ -143,7 +142,7 @@ export const PasswordVerificationModal: React.FC<PasswordVerificationModalProps>
                     hasError ? 'mt-4' : 'mt-0'
                   )}
                 >
-                  <span className="material-symbols-outlined text-sm text-slate-600">shield</span>
+                  <ShieldCheckIcon color="#45556c" />
                   <p className="text-[10px] leading-relaxed tracking-widest text-slate-600 uppercase">
                     Secure Verification Required
                   </p>

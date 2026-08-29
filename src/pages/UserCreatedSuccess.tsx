@@ -1,5 +1,7 @@
 import { useUserStore } from '@/stores/useUserStore';
 import { Link } from 'react-router';
+import defaultAvatar from '@/assets/avatar.png';
+import { Check, Info } from 'lucide-react';
 
 const UserCreatedSuccess = () => {
   const { currentUser } = useUserStore();
@@ -21,8 +23,8 @@ const UserCreatedSuccess = () => {
             style={{ boxShadow: '0 0 20px rgba(19, 91, 236, 0.2)' }}
           >
             <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-xl text-primary">info</span>
-              <p className="text-sm leading-relaxed font-medium text-white/90 md:text-base">
+              <Info className="text-primary" size={20} />
+              <p className="text-sm leading-relaxed font-medium text-on-surface/90 md:text-base">
                 Welcome to FinTrack! Everything you enter is stored locally in your browser. Make
                 sure to back up or export your data before clearing storage.
               </p>
@@ -34,7 +36,7 @@ const UserCreatedSuccess = () => {
                   parent.style.display = 'none';
                 }
               }}
-              className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-white/20"
+              className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold whitespace-nowrap text-on-surface transition-colors hover:bg-white/20"
             >
               Got it 👍
             </button>
@@ -43,14 +45,12 @@ const UserCreatedSuccess = () => {
         <main className="flex flex-1 flex-col items-center justify-center px-6 py-6">
           <div className="relative mb-8">
             <div className="border-success-green bg-success-green/10 flex size-24 items-center justify-center rounded-full border-4 shadow-[0_0_40px_rgba(16,185,129,0.2)]">
-              <span className="material-symbols-outlined text-success-green text-5xl font-bold">
-                check
-              </span>
+              <Check className="text-success-green font-bold" size={48} strokeWidth={3} />
             </div>
             <div className="border-success-green/30 absolute inset-0 animate-ping rounded-full border opacity-20"></div>
           </div>
           <div className="mb-10 text-center">
-            <h1 className="mb-2 text-[36px] leading-tight font-extrabold tracking-tight text-white md:text-[42px]">
+            <h1 className="mb-2 text-[36px] leading-tight font-extrabold tracking-tight text-on-surface md:text-[42px]">
               Profile Successfully Created!
             </h1>
             <p className="text-lg font-normal text-[#9da6b9]">
@@ -65,12 +65,12 @@ const UserCreatedSuccess = () => {
                     <img
                       alt="Profile Avatar"
                       className="h-full w-full object-cover"
-                      src={currentUser?.avatar ?? './assets/avatar.png'}
+                      src={currentUser?.avatar ?? defaultAvatar}
                     />
                   </div>
                 </div>
                 <div className="flex flex-col items-center justify-center">
-                  <p className="text-center text-[22px] leading-tight font-bold tracking-[-0.015em] text-white">
+                  <p className="text-center text-[22px] leading-tight font-bold tracking-[-0.015em] text-on-surface">
                     {currentUser?.name}
                   </p>
                 </div>
@@ -80,12 +80,12 @@ const UserCreatedSuccess = () => {
           <div className="flex w-full max-w-sm flex-col gap-4 px-4">
             <Link
               to={`/dashboard`}
-              className="flex h-14 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-primary text-lg leading-normal font-bold tracking-[0.015em] text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary/90"
+              className="flex h-14 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-primary text-lg leading-normal font-bold tracking-[0.015em] text-on-surface transition-all hover:bg-primary-dim"
             >
               <span className="truncate">Continue to Dashboard</span>
             </Link>
             <Link
-              className="py-2 text-center text-sm leading-normal font-medium text-[#9da6b9] underline transition-colors hover:text-white"
+              className="py-2 text-center text-sm leading-normal font-medium text-[#9da6b9] underline transition-colors hover:text-on-surface"
               to={`/edit-profile?id=${currentUser?.id}`}
             >
               Edit Profile Details
