@@ -72,9 +72,9 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, edit
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="animate-in fade-in zoom-in relative w-full max-w-lg rounded-3xl border border-outline-variant/30 bg-surface-container shadow-2xl transition-all duration-300">
-        <div className="flex items-center justify-between border-b border-outline-variant/20 px-6 py-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="animate-in fade-in zoom-in relative w-full max-w-lg rounded-2xl border border-outline-variant/15 bg-surface-container shadow-2xl transition-all duration-300">
+        <div className="flex items-center justify-between border-b border-outline-variant/15 px-6 py-4">
           <h2 className="text-xl font-bold text-on-surface">
             {editingAccount ? 'Edit Account' : 'Add New Account'}
           </h2>
@@ -87,7 +87,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, edit
         </div>
         <form onSubmit={handleSubmit} className="space-y-4 p-6">
           {error && (
-            <div className="rounded-xl bg-error-container/20 p-3 text-sm text-error">{error}</div>
+            <div className="rounded-xl bg-tertiary/10 p-3 text-sm text-tertiary">{error}</div>
           )}
 
           <div>
@@ -98,13 +98,13 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, edit
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. HDFC Bank, My Wallet"
-              className="w-full rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:border-primary/50 focus:outline-none"
+              className="w-full rounded-xl border border-outline-variant/15 bg-surface px-4 py-3 text-sm text-on-surface focus:border-primary/30 focus:outline-none"
             />
           </div>
 
           <div>
             <label className="mb-1.5 block text-xs font-semibold text-outline">Account Type</label>
-            <div className="flex rounded-2xl border border-outline-variant/10 bg-surface-container-low p-1">
+            <div className="flex rounded-2xl border border-outline-variant/10 bg-surface p-1">
               {(['cash', 'bank', 'credit'] as AccountType[]).map((t) => (
                 <button
                   key={t}
@@ -113,7 +113,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, edit
                   className={`flex-1 rounded-xl py-2.5 text-xs font-bold capitalize transition-all ${
                     type === t
                       ? 'bg-primary-container text-on-primary-container shadow-sm'
-                      : 'text-outline hover:bg-surface-variant/30 hover:text-on-surface'
+                      : 'text-outline hover:bg-surface-container hover:text-on-surface'
                   }`}
                 >
                   {t}
@@ -139,7 +139,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, edit
                     value={limit}
                     onChange={(e) => setLimit(e.target.value)}
                     placeholder="0.00"
-                    className="w-full rounded-xl border border-outline-variant/20 bg-surface-container-low py-3 pr-4 pl-8 text-sm text-on-surface focus:border-primary/50 focus:outline-none"
+                    className="w-full rounded-xl border border-outline-variant/15 bg-surface py-3 pr-4 pl-8 text-sm text-on-surface focus:border-primary/30 focus:outline-none"
                   />
                 </div>
               </div>
@@ -158,7 +158,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, edit
                     value={used}
                     onChange={(e) => setUsed(e.target.value)}
                     placeholder="0.00"
-                    className="w-full rounded-xl border border-outline-variant/20 bg-surface-container-low py-3 pr-4 pl-8 text-sm text-on-surface focus:border-primary/50 focus:outline-none"
+                    className="w-full rounded-xl border border-outline-variant/15 bg-surface py-3 pr-4 pl-8 text-sm text-on-surface focus:border-primary/30 focus:outline-none"
                   />
                 </div>
               </div>
@@ -177,7 +177,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, edit
                   value={balance}
                   onChange={(e) => setBalance(e.target.value)}
                   placeholder="0.00"
-                  className="w-full rounded-xl border border-outline-variant/20 bg-surface-container-low py-3 pr-4 pl-8 text-sm text-on-surface focus:border-primary/50 focus:outline-none"
+                  className="w-full rounded-xl border border-outline-variant/15 bg-surface py-3 pr-4 pl-8 text-sm text-on-surface focus:border-primary/30 focus:outline-none"
                 />
               </div>
             </div>
@@ -187,13 +187,13 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({ isOpen, onClose, edit
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-2xl border border-outline-variant/30 py-4 text-sm font-bold text-outline hover:bg-surface-variant/30"
+              className="flex-1 rounded-2xl border border-outline-variant/15 py-3 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-highest"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 rounded-2xl bg-primary py-4 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98]"
+              className="flex-1 rounded-xl bg-primary py-3 text-sm font-semibold text-on-primary transition-all duration-200 hover:bg-primary-dim active:scale-[0.98]"
             >
               {editingAccount ? 'Update Account' : 'Create Account'}
             </button>
