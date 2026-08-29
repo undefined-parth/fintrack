@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, Check } from 'lucide-react';
 
 type Option = {
   label: string;
@@ -29,7 +31,7 @@ export default function Select({
   const selected = options.find((o) => o.value === value);
   const selectedIndex = options.findIndex((o) => o.value === value);
 
-  // close on outside click (because users click everywhere like chaos goblins)
+  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (!ref.current?.contains(e.target as Node)) {
@@ -62,8 +64,10 @@ export default function Select({
       case 'Enter':
       case ' ':
         e.preventDefault();
-        onChange(options[focusedIndex].value);
-        setOpen(false);
+        if (focusedIndex >= 0 && focusedIndex < options.length) {
+          onChange(options[focusedIndex].value);
+          setOpen(false);
+        }
         break;
       case 'Escape':
         e.preventDefault();
@@ -81,58 +85,70 @@ export default function Select({
   };
 
   return (
-    <div ref={ref} className={`relative ${className || 'w-44'}`}>
+    <div ref={ref} className={`relative ${className || 'w-full'}`}>
       {/* Trigger */}
       <button
         ref={buttonRef}
         type="button"
         onClick={handleButtonClick}
+        onKeyDown={handleKeyDown}
         aria-expanded={open}
         aria-haspopup="listbox"
-        className="flex w-full items-center justify-between rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-2.5 text-xs font-semibold text-on-surface transition hover:bg-surface-variant/50"
+        className="flex w-full items-center justify-between rounded-xl border border-outline-variant/15 bg-surface-container px-4 py-2.5 text-xs font-semibold text-on-surface transition-all duration-200 hover:bg-surface-container-high focus:border-primary/40 focus:ring-4 focus:ring-primary/10 focus:outline-none"
       >
         <span className="truncate">{selected?.label || placeholder}</span>
-
-        <span className={`flex items-center justify-center transition ${open ? 'rotate-180' : ''}`}>
-          <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M5 7l5 5 5-5H5z" />
-          </svg>
-        </span>
+        <ChevronDown
+          size={14}
+          className={`text-outline/70 transition-transform duration-250 ${
+            open ? 'rotate-180 text-primary' : ''
+          }`}
+        />
       </button>
 
       {/* Dropdown */}
-      {open && (
-        <div
-          role="listbox"
-          onKeyDown={handleKeyDown}
-          className="animate-in fade-in zoom-in-95 absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-outline-variant/20 bg-surface-container shadow-lg"
-        >
-          {options.map((opt, index) => {
-            const active = focusedIndex === index;
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            role="listbox"
+            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="custom-scrollbar absolute right-0 left-0 z-50 mt-1.5 max-h-60 overflow-y-auto rounded-xl border border-outline-variant/15 bg-surface-container-high p-1 shadow-2xl"
+          >
+            {options.map((opt, index) => {
+              const isSelected = opt.value === value;
+              const isFocused = focusedIndex === index;
 
-            return (
-              <div
-                key={opt.value}
-                ref={(el) => { optionRefs.current[index] = el; }}
-                role="option"
-                tabIndex={focusedIndex === index ? 0 : -1}
-                aria-selected={active}
-                onClick={() => {
-                  onChange(opt.value);
-                  setOpen(false);
-                }}
-                className={`cursor-pointer px-4 py-2 text-xs font-medium transition ${
-                  active
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-on-surface hover:bg-surface-variant/50'
-                } `}
-              >
-                {opt.label}
-              </div>
-            );
-          })}
-        </div>
-      )}
+              return (
+                <div
+                  key={opt.value}
+                  ref={(el) => {
+                    optionRefs.current[index] = el;
+                  }}
+                  role="option"
+                  tabIndex={focusedIndex === index ? 0 : -1}
+                  aria-selected={isSelected}
+                  onClick={() => {
+                    onChange(opt.value);
+                    setOpen(false);
+                  }}
+                  className={`flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition-all select-none ${
+                    isSelected
+                      ? 'bg-primary/10 text-primary'
+                      : isFocused
+                        ? 'bg-surface-container-highest/60 text-on-surface'
+                        : 'text-on-surface-variant hover:bg-surface-container-highest/40 hover:text-on-surface'
+                  }`}
+                >
+                  <span className="truncate">{opt.label}</span>
+                  {isSelected && <Check size={12} className="ml-2 shrink-0 text-primary" />}
+                </div>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

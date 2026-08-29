@@ -5,6 +5,26 @@ import type { Account, AccountType } from '@/types';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAccountStore } from '@/stores/useAccountStore';
+import defaultAvatar from '@/assets/avatar.png';
+import {
+  ArrowLeft,
+  ArrowRight,
+  ChevronDown,
+  Coins,
+  Edit2,
+  Eye,
+  IndianRupee,
+  Lightbulb,
+  Lock,
+  PlusCircle,
+  ShieldAlert,
+  ShieldCheck,
+  Trash2,
+  User2,
+  X,
+  CheckCircle,
+  Circle,
+} from 'lucide-react';
 
 type FormData = {
   name: string;
@@ -21,6 +41,13 @@ const steps: Record<number, string> = {
 };
 
 const AccountTypes: Array<AccountType> = ['bank', 'credit', 'cash'];
+
+const getPasswordStrength = (password: string) => ({
+  length: password.length >= 8,
+  uppercase: /[A-Z]/.test(password),
+  number: /[0-9]/.test(password),
+  specialChar: /[^A-Za-z0-9]/.test(password),
+});
 
 const compressImage = (file: File, maxSizeKB = 200): Promise<string> => {
   return new Promise((resolve) => {
@@ -63,38 +90,38 @@ const ProgressBar = ({ step }: { step: number }) => {
     <div className="px-8 pt-4">
       <div className="mb-2 flex items-center justify-between">
         <div className="flex flex-col gap-1">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white">Add New User</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <h3 className="text-xl font-bold text-on-surface">Add New User</h3>
+          <p className="text-sm text-outline">
             Step {step} of 3: {steps[step]}
           </p>
         </div>
       </div>
       {/* Stepper Visual */}
       <div className="relative mb-8 flex items-center justify-between">
-        <div className="absolute top-1/2 left-2.5 z-0 h-0.5 w-[95%] -translate-y-1/2 bg-slate-100 dark:bg-slate-800"></div>
+        <div className="absolute top-1/2 left-2.5 z-0 h-0.5 w-[95%] -translate-y-1/2 bg-slate-100 dark:bg-surface-container-highest"></div>
         <div
           className="absolute top-1/2 left-2.5 z-0 h-0.5 bg-primary transition-all duration-300 ease-in-out"
           style={{ width: step <= 2 ? `${(step - 1) * 50}%` : '95%' }}
         ></div>
         {/* Step 1 */}
         <div className="relative z-10 flex flex-col items-center">
-          <div className="flex size-10 items-center justify-center rounded-full bg-primary text-white ring-4 ring-white dark:ring-[#111318]">
-            <span className="material-symbols-outlined text-[20px]">person</span>
+          <div className="flex size-10 items-center justify-center rounded-full bg-primary text-on-surface ring-4 ring-surface">
+            <User2 />
           </div>
-          <span className="mt-2 text-xs font-bold tracking-wider text-slate-900 uppercase dark:text-white">
+          <span className="mt-2 text-xs font-bold tracking-wider text-on-surface uppercase">
             Profile
           </span>
         </div>
         {/* Step 2 */}
         <div className="relative z-10 flex flex-col items-center">
           <div
-            className="flex size-10 items-center justify-center rounded-full bg-slate-800 text-slate-400 ring-4 ring-white dark:ring-[#111318]"
+            className="flex size-10 items-center justify-center rounded-full bg-surface-container-highest text-outline ring-4 ring-surface"
             style={{
               backgroundColor: step >= 2 ? 'var(--color-primary)' : '',
               color: step >= 2 ? 'white' : '',
             }}
           >
-            <span className="material-symbols-outlined text-[20px]">security</span>
+            <ShieldAlert />
           </div>
           <span
             className="mt-2 text-xs font-medium tracking-wider uppercase dark:text-slate-600"
@@ -106,13 +133,13 @@ const ProgressBar = ({ step }: { step: number }) => {
         {/* Step 3 */}
         <div className="relative z-10 flex flex-col items-center">
           <div
-            className="flex size-10 items-center justify-center rounded-full bg-slate-800 text-slate-400 ring-4 ring-white dark:ring-[#111318]"
+            className="flex size-10 items-center justify-center rounded-full bg-surface-container-highest text-outline ring-4 ring-surface"
             style={{
               backgroundColor: step >= 3 ? 'var(--color-primary)' : '',
               color: step >= 3 ? 'white' : '',
             }}
           >
-            <span className="material-symbols-outlined text-[20px]">account_balance</span>
+            <IndianRupee />
           </div>
           <span
             className="mt-2 text-xs font-medium tracking-wider uppercase dark:text-slate-600"
@@ -151,38 +178,34 @@ const Step1 = ({
           className="absolute inset-0 z-10 cursor-pointer opacity-0"
           onChange={handleImageUpload}
         />
-        <div className="flex size-32 flex-col items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-slate-300 bg-slate-50 transition-all hover:border-primary hover:bg-primary/5 dark:border-slate-700 dark:bg-slate-800/30">
+        <div className="flex size-32 flex-col items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-outline-variant/15 bg-surface-container transition-all hover:border-primary hover:bg-primary/5 dark:border-slate-700 dark:bg-surface-container-highest/30">
           {formdata.avatar ? (
             <img src={formdata.avatar} alt="Avatar" className="h-full w-full object-cover" />
           ) : (
             <>
-              <span className="material-symbols-outlined mb-1 text-3xl text-slate-400 group-hover:text-primary dark:text-slate-600">
-                add_a_photo
-              </span>
-              <span className="text-[10px] font-bold tracking-tight text-slate-500 uppercase group-hover:text-primary dark:text-slate-500">
+              <User2 size={40} />
+              <span className="text-[10px] font-bold tracking-tight text-outline uppercase group-hover:text-primary dark:text-outline">
                 Upload Photo
               </span>
             </>
           )}
         </div>
-        <div className="absolute right-0 bottom-0 flex size-8 items-center justify-center rounded-full border-4 border-white bg-primary dark:border-[#111318]">
-          <span className="material-symbols-outlined text-[16px] text-white">edit</span>
+        <div className="absolute right-0 bottom-0 flex size-8 items-center justify-center rounded-full border-4 border-surface bg-primary">
+          <Edit2 size={12} />
         </div>
       </div>
       <div className="w-full max-w-md space-y-4">
         <div className="flex flex-col gap-2">
-          <label className="px-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
-            Full Name
-          </label>
+          <label className="px-1 text-sm font-semibold text-on-surface-variant">Full Name</label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute top-1/2 left-3 -translate-y-1/2 text-slate-400 dark:text-slate-500">
-              person
+            <span className="absolute top-1/2 left-3 -translate-y-1/2 text-outline">
+              <User2 />
             </span>
             <input
               onChange={handleChange}
               name="name"
               value={formdata.name}
-              className="h-12 w-full rounded-lg border-slate-200 bg-slate-50 pr-4 pl-11 text-slate-900 transition-all outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+              className="h-12 w-full rounded-lg border-outline-variant/15 bg-surface-container pr-4 pl-11 text-on-surface transition-all outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-outline-variant/15 dark:bg-surface-container"
               placeholder="e.g. Jane Doe"
               type="text"
             />
@@ -190,18 +213,18 @@ const Step1 = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="px-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
+          <label className="px-1 text-sm font-semibold text-on-surface-variant">
             Default Currency
           </label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute top-1/2 left-3 -translate-y-1/2 text-slate-400 dark:text-slate-500">
-              payments
+            <span className="absolute top-1/2 left-3 -translate-y-1/2 text-outline">
+              <Coins />
             </span>
             <select
               onChange={handleChange}
               name="defaultCurrency"
               value={formdata.defaultCurrency}
-              className="h-12 w-full cursor-pointer appearance-none rounded-lg border-slate-200 bg-slate-50 pr-10 pl-11 text-slate-900 transition-all outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+              className="h-12 w-full cursor-pointer appearance-none rounded-lg border-outline-variant/15 bg-surface-container pr-10 pl-11 text-on-surface transition-all outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-outline-variant/15 dark:bg-surface-container"
             >
               {SUPPORTED_CURRENCIES.map((currency) => (
                 <option key={currency.code} value={currency.code}>
@@ -209,8 +232,8 @@ const Step1 = ({
                 </option>
               ))}
             </select>
-            <span className="material-symbols-outlined pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 dark:text-slate-500">
-              expand_more
+            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-outline">
+              <ChevronDown />
             </span>
           </div>
         </div>
@@ -226,28 +249,12 @@ const Step2 = ({
   formdata: FormData;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
 }) => {
-  type PasswordStrength = {
-    length: boolean;
-    uppercase: boolean;
-    number: boolean;
-    specialChar: boolean;
-  };
-
   const strengthLabel: Record<number, string> = {
     0: 'Weak',
     1: 'Medium',
     2: 'Strong',
     3: 'Very Strong',
     4: 'Perfect',
-  };
-
-  const getPasswordStrength = (password: string): PasswordStrength => {
-    return {
-      length: password.length >= 8,
-      uppercase: /[A-Z]/.test(password),
-      number: /[0-9]/.test(password),
-      specialChar: /[^A-Za-z0-9]/.test(password),
-    };
   };
 
   const getPasswordScore = (password: string): number => {
@@ -259,17 +266,17 @@ const Step2 = ({
   const [showPassword, setShowPassword] = useState(false);
   return (
     <>
-      <div className="flex flex-1 flex-col border-t border-b border-slate-200 md:flex-row dark:border-slate-800">
+      <div className="flex flex-1 flex-col border-t border-b border-outline-variant/15 md:flex-row dark:border-outline-variant/15">
         {/* <!-- Left Column: Form --> */}
-        <div className="flex min-w-md items-center justify-evenly border-r border-slate-200 dark:border-slate-800">
+        <div className="flex min-w-md items-center justify-evenly border-r border-outline-variant/15">
           <div className="space-y-4">
             <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-2 px-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <label className="flex items-center gap-2 px-1 text-sm font-semibold text-on-surface-variant">
                 Password
               </label>
               <div className="relative">
-                <span className="material-symbols-outlined absolute top-1/2 left-3 -translate-y-1/2 text-slate-400 dark:text-slate-500">
-                  lock
+                <span className="absolute top-1/2 left-3 -translate-y-1/2 text-outline">
+                  <Lock />
                 </span>
                 <input
                   name="password"
@@ -278,34 +285,34 @@ const Step2 = ({
                     handleChange(e);
                     setPasswordScore(getPasswordScore(e.target.value));
                   }}
-                  className="h-12 w-full rounded-lg border-slate-200 bg-slate-50 pr-11 pl-11 text-slate-900 transition-all outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                  className="h-12 w-full rounded-lg border-outline-variant/15 bg-surface-container pr-11 pl-11 text-on-surface transition-all outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-outline-variant/15 dark:bg-surface-container"
                   placeholder="Create a strong password"
                   type={showPassword ? 'text' : 'password'}
                   minLength={8}
                 />
                 <button
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 transition-colors hover:text-primary"
+                  className="absolute top-1/2 right-3 -translate-y-1/2 text-outline transition-colors hover:text-primary"
                 >
-                  <span className="material-symbols-outlined">visibility</span>
+                  <Eye />
                 </button>
               </div>
               {/* <!-- Strength Meter --> */}
               <div className="mt-1 flex gap-1.5 px-1">
                 <div
-                  className={`h-1.5 flex-1 rounded-full ${passwordScore >= 1 ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-800'}`}
+                  className={`h-1.5 flex-1 rounded-full ${passwordScore >= 1 ? 'bg-primary' : 'bg-slate-200 dark:bg-surface-container-highest'}`}
                 ></div>
                 <div
-                  className={`h-1.5 flex-1 rounded-full ${passwordScore >= 2 ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-800'}`}
+                  className={`h-1.5 flex-1 rounded-full ${passwordScore >= 2 ? 'bg-primary' : 'bg-slate-200 dark:bg-surface-container-highest'}`}
                 ></div>
                 <div
-                  className={`h-1.5 flex-1 rounded-full ${passwordScore >= 3 ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-800'}`}
+                  className={`h-1.5 flex-1 rounded-full ${passwordScore >= 3 ? 'bg-primary' : 'bg-slate-200 dark:bg-surface-container-highest'}`}
                 ></div>
                 <div
-                  className={`h-1.5 flex-1 rounded-full ${passwordScore >= 4 ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-800'}`}
+                  className={`h-1.5 flex-1 rounded-full ${passwordScore >= 4 ? 'bg-primary' : 'bg-slate-200 dark:bg-surface-container-highest'}`}
                 ></div>
               </div>
-              <p className="px-1 text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="px-1 text-[11px] text-outline">
                 Strength:
                 <span className="font-bold text-yellow-500 uppercase">
                   {strengthLabel[passwordScore]}
@@ -315,34 +322,30 @@ const Step2 = ({
           </div>
         </div>
         {/* <!-- Right Column: Security Tips --> */}
-        <div className="flex-1 bg-slate-50/50 p-8 dark:bg-slate-900/30">
+        <div className="flex-1 bg-surface-container/50 p-8 dark:bg-surface-container/30">
           <div className="flex flex-col gap-6">
             <div className="flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                <span className="material-symbols-outlined text-primary">verified_user</span>
+                <ShieldCheck className="text-primary" />
               </div>
-              <h3 className="font-bold text-slate-900 dark:text-white">Security Tips</h3>
+              <h3 className="font-bold text-on-surface">Security Tips</h3>
             </div>
             <div className="space-y-4">
-              <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+              <p className="text-sm leading-relaxed text-on-surface-variant">
                 A strong password protects financial data and account integrity.
               </p>
               <ul className="space-y-3">
                 <li className="flex items-start gap-3 text-sm">
                   {formdata.password.length >= 8 ? (
-                    <span className="material-symbols-outlined text-[20px] text-primary">
-                      check_circle
-                    </span>
+                    <CheckCircle className="text-primary" size={20} />
                   ) : (
-                    <span className="material-symbols-outlined text-[20px] text-slate-400 dark:text-slate-600">
-                      radio_button_unchecked
-                    </span>
+                    <Circle className="text-outline/40" size={20} />
                   )}
                   <span
                     className={
                       formdata.password.length >= 8
-                        ? 'text-slate-700 dark:text-slate-300'
-                        : 'text-slate-500 italic dark:text-slate-500'
+                        ? 'text-on-surface-variant'
+                        : 'text-outline/50 italic'
                     }
                   >
                     8+ characters long
@@ -350,19 +353,15 @@ const Step2 = ({
                 </li>
                 <li className="flex items-start gap-3 text-sm">
                   {/[A-Z]/.test(formdata.password) ? (
-                    <span className="material-symbols-outlined text-[20px] text-primary">
-                      check_circle
-                    </span>
+                    <CheckCircle className="text-primary" size={20} />
                   ) : (
-                    <span className="material-symbols-outlined text-[20px] text-slate-400 dark:text-slate-600">
-                      radio_button_unchecked
-                    </span>
+                    <Circle className="text-outline/40" size={20} />
                   )}
                   <span
                     className={
                       /[A-Z]/.test(formdata.password)
-                        ? 'text-slate-700 dark:text-slate-300'
-                        : 'text-slate-500 italic dark:text-slate-500'
+                        ? 'text-on-surface-variant'
+                        : 'text-outline/50 italic'
                     }
                   >
                     1 uppercase letter
@@ -370,19 +369,15 @@ const Step2 = ({
                 </li>
                 <li className="flex items-start gap-3 text-sm">
                   {/[0-9]/.test(formdata.password) ? (
-                    <span className="material-symbols-outlined text-[20px] text-primary">
-                      check_circle
-                    </span>
+                    <CheckCircle className="text-primary" size={20} />
                   ) : (
-                    <span className="material-symbols-outlined text-[20px] text-slate-400 dark:text-slate-600">
-                      radio_button_unchecked
-                    </span>
+                    <Circle className="text-outline/40" size={20} />
                   )}
                   <span
                     className={
                       /[0-9]/.test(formdata.password)
-                        ? 'text-slate-700 dark:text-slate-300'
-                        : 'text-slate-500 italic dark:text-slate-500'
+                        ? 'text-on-surface-variant'
+                        : 'text-outline/50 italic'
                     }
                   >
                     At least 1 number
@@ -390,19 +385,15 @@ const Step2 = ({
                 </li>
                 <li className="flex items-start gap-3 text-sm">
                   {/[^A-Za-z0-9]/.test(formdata.password) ? (
-                    <span className="material-symbols-outlined text-[20px] text-primary">
-                      check_circle
-                    </span>
+                    <CheckCircle className="text-primary" size={20} />
                   ) : (
-                    <span className="material-symbols-outlined text-[20px] text-slate-400 dark:text-slate-600">
-                      radio_button_unchecked
-                    </span>
+                    <Circle className="text-outline/40" size={20} />
                   )}
                   <span
                     className={
                       /[^A-Za-z0-9]/.test(formdata.password)
-                        ? 'text-slate-700 dark:text-slate-300'
-                        : 'text-slate-500 italic dark:text-slate-500'
+                        ? 'text-on-surface-variant'
+                        : 'text-outline/50 italic'
                     }
                   >
                     Special character
@@ -415,10 +406,8 @@ const Step2 = ({
       </div>
       <div className="mx-4 my-2 rounded-lg border border-blue-100 bg-blue-50/50 p-4 dark:border-primary/20 dark:bg-primary/5">
         <div className="flex gap-3">
-          <span className="material-symbols-outlined shrink-0 text-[20px] text-primary">
-            lightbulb
-          </span>
-          <p className="text-[11px] leading-normal text-slate-600 dark:text-slate-400">
+          <Lightbulb className="shrink-0 text-primary" size={20} />
+          <p className="text-[11px] leading-normal text-on-surface-variant">
             Avoid using common words or birth dates. Consider a passphrase for better security.
           </p>
         </div>
@@ -450,37 +439,37 @@ const Step3 = ({
   return (
     <div className="px-8 pb-10">
       <div className="mb-6">
-        <h1 className="mb-2 text-2xl font-bold text-slate-900 dark:text-white">Initial Accounts</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <h1 className="mb-2 text-2xl font-bold text-on-surface">Initial Accounts</h1>
+        <p className="text-sm text-outline">
           Add your bank accounts, credit cards, or cash to begin tracking.
         </p>
       </div>
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-[#111318]">
+      <div className="overflow-hidden rounded-lg border border-outline-variant/15 bg-white dark:border-outline-variant/15 dark:bg-[#111318]">
         <table className="w-full border-collapse text-left">
           <thead>
-            <tr className="bg-slate-50 dark:bg-slate-900/50">
-              <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold tracking-wider text-slate-700 uppercase dark:border-slate-800 dark:text-slate-300">
+            <tr className="bg-surface-container-low">
+              <th className="border-b border-outline-variant/15 px-4 py-3 text-xs font-bold tracking-wider text-on-surface-variant uppercase dark:border-outline-variant/15 dark:text-slate-300">
                 Account Name
               </th>
-              <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold tracking-wider text-slate-700 uppercase dark:border-slate-800 dark:text-slate-300">
+              <th className="border-b border-outline-variant/15 px-4 py-3 text-xs font-bold tracking-wider text-on-surface-variant uppercase dark:border-outline-variant/15 dark:text-slate-300">
                 Account Type
               </th>
-              <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold tracking-wider text-slate-700 uppercase dark:border-slate-800 dark:text-slate-300">
+              <th className="border-b border-outline-variant/15 px-4 py-3 text-xs font-bold tracking-wider text-on-surface-variant uppercase dark:border-outline-variant/15 dark:text-slate-300">
                 Starting Balance / Credit Limit
               </th>
-              <th className="border-b border-slate-200 px-4 py-3 text-center text-xs font-bold tracking-wider text-slate-700 uppercase dark:border-slate-800 dark:text-slate-300">
+              <th className="border-b border-outline-variant/15 px-4 py-3 text-center text-xs font-bold tracking-wider text-on-surface-variant uppercase dark:border-outline-variant/15 dark:text-slate-300">
                 Action
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          <tbody className="divide-y divide-outline-variant/10">
             {accountList.map((account, index) => {
               return (
                 <tr className="group transition-colors" key={index}>
                   <td className="px-4 py-4">
                     <div>
                       <input
-                        className="w-full rounded-lg border-slate-200 bg-slate-50 py-1.5 pr-3 pl-8 text-xs font-semibold text-slate-900 transition-all outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                        className="w-full rounded-lg border-outline-variant/15 bg-surface-container py-1.5 pr-3 pl-8 text-xs font-semibold text-on-surface transition-all outline-none focus:ring-2 focus:ring-primary/20 dark:border-outline-variant/15 dark:bg-surface-container"
                         placeholder="Account Name"
                         name="name"
                         value={account.name}
@@ -498,14 +487,14 @@ const Step3 = ({
                           handleChange({ name: 'type', value: e.target.value, index })
                         }
                         name="type"
-                        className="w-full cursor-pointer appearance-none rounded-lg border-slate-200 bg-slate-50 py-1.5 pr-8 pl-3 text-xs font-semibold text-slate-900 transition-all outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                        className="w-full cursor-pointer appearance-none rounded-lg border-outline-variant/15 bg-surface-container py-1.5 pr-8 pl-3 text-xs font-semibold text-on-surface transition-all outline-none focus:ring-2 focus:ring-primary/20 dark:border-outline-variant/15 dark:bg-surface-container"
                       >
                         {AccountTypes.map((accountType) => (
                           <option key={accountType}>{accountType}</option>
                         ))}
                       </select>
-                      <span className="material-symbols-outlined pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-base text-slate-400 dark:text-slate-500">
-                        expand_more
+                      <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-outline">
+                        <ChevronDown size={16} />
                       </span>
                     </div>
                   </td>
@@ -513,17 +502,17 @@ const Step3 = ({
                     <div className="relative">
                       {account.type !== 'credit' ? (
                         <input
-                          className="w-full rounded-lg border-slate-200 bg-slate-50 py-1.5 pr-3 pl-8 text-xs font-semibold text-slate-900 transition-all outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                          className="w-full rounded-lg border-outline-variant/15 bg-surface-container py-1.5 pr-3 pl-8 text-xs font-semibold text-on-surface transition-all outline-none focus:ring-2 focus:ring-primary/20 dark:border-outline-variant/15 dark:bg-surface-container"
                           type="number"
                           placeholder="Account Balance"
                           name="balance"
                           onChange={(e) =>
-                            handleChange({ name: 'balance', value: e.target.value, index })
+                            handleChange({ name: 'limit', value: e.target.value, index })
                           }
                         />
                       ) : (
                         <input
-                          className="w-full rounded-lg border-slate-200 bg-slate-50 py-1.5 pr-3 pl-8 text-xs font-semibold text-slate-900 transition-all outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                          className="w-full rounded-lg border-outline-variant/15 bg-surface-container py-1.5 pr-3 pl-8 text-xs font-semibold text-on-surface transition-all outline-none focus:ring-2 focus:ring-primary/20 dark:border-outline-variant/15 dark:bg-surface-container"
                           type="number"
                           placeholder="Credit Limit"
                           name="limit"
@@ -537,9 +526,9 @@ const Step3 = ({
                   <td className="px-4 py-4 text-center">
                     <button
                       onClick={() => handleDelete(index)}
-                      className="text-slate-400 transition-colors hover:text-red-500"
+                      className="text-outline transition-colors hover:text-tertiary"
                     >
-                      <span className="material-symbols-outlined text-[20px]">delete</span>
+                      <Trash2 size={20} />
                     </button>
                   </td>
                 </tr>
@@ -556,7 +545,7 @@ const Step3 = ({
           }}
           className="flex items-center gap-2 text-sm font-bold text-primary transition-colors hover:text-primary/80"
         >
-          <span className="material-symbols-outlined text-[20px]">add_circle</span>
+          <PlusCircle size={20} />
           Add Another Account
         </button>
       </div>
@@ -578,15 +567,15 @@ const Footer = ({
   ) => void;
 }) => {
   return (
-    <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-8 py-6 dark:border-slate-800 dark:bg-slate-900/50">
+    <div className="flex items-center justify-between border-t border-outline-variant/15 bg-surface-container px-8 py-6 dark:border-outline-variant/15 dark:bg-surface-container/50">
       <button
         onClick={() => (step === 1 ? navigate('/') : setStep(step - 1))}
-        className="flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
+        className="flex items-center gap-2 text-sm font-semibold text-outline transition-colors hover:text-on-surface-variant dark:text-outline dark:hover:text-on-surface"
       >
         {step === 1 ? (
-          <span className="material-symbols-outlined text-[18px]">close</span>
+          <X size={18} />
         ) : (
-          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+          <ArrowLeft size={18} />
         )}
         {step === 1 ? 'Cancel' : `Back to ${steps[step - 1]}`}
       </button>
@@ -596,10 +585,10 @@ const Footer = ({
           if (step === 3) handleSubmit(e);
           else setStep(step + 1);
         }}
-        className="flex items-center gap-2 rounded-lg bg-primary px-8 py-3 font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 active:scale-95"
+        className="flex items-center gap-2 rounded-lg bg-primary px-8 py-3 font-bold text-on-surface transition-all hover:bg-primary-dim active:scale-95"
       >
         {step === 3 ? 'Create User' : `Next: ${steps[step + 1]}`}
-        <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+        <ArrowRight size={18} />
       </button>
     </div>
   );
@@ -641,10 +630,23 @@ const AddNewUser = () => {
     e.preventDefault();
 
     // validate name and password
-    if (!formData.name || !formData.password) return;
+    if (!formData.name.trim() || !formData.password.trim()) return;
+
+    const passwordChecks = getPasswordStrength(formData.password);
+    if (!Object.values(passwordChecks).every(Boolean)) return;
 
     // validate accounts
-    if (accountList.some((account) => !account.name || !account.balance)) return;
+    if (
+      accountList.some(
+        (account) =>
+          !account.name?.trim() ||
+          (account.type === 'credit'
+            ? !account.limit || account.limit <= 0
+            : account.balance === undefined)
+      )
+    ) {
+      return;
+    }
 
     // create user
     const user = createUser(
@@ -652,7 +654,7 @@ const AddNewUser = () => {
       formData.password,
       formData.defaultCurrency,
       formData.currencyIcon,
-      formData.avatar ? formData.avatar : 'src/assets/avatar.png'
+      formData.avatar ? formData.avatar : defaultAvatar
     );
 
     if (!user.ok) {
@@ -678,7 +680,7 @@ const AddNewUser = () => {
 
   return (
     <main className="flex flex-1 items-center justify-center p-7">
-      <div className="w-full max-w-200 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-[#111318]">
+      <div className="w-full max-w-200 overflow-hidden rounded-xl border border-outline-variant/15 bg-white shadow-xl dark:border-outline-variant/15 dark:bg-[#111318]">
         <ProgressBar step={step} />
         {step === 1 && (
           <Step1 formdata={formData} setFormData={setFormData} handleChange={handleChange} />

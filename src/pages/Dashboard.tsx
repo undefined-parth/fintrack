@@ -8,85 +8,108 @@ import { useLoanStore } from '@/stores/useLoanStore';
 import { useTransactionStore } from '@/stores/useTransactionStore';
 import { useUserStore } from '@/stores/useUserStore';
 import { formatCurrency } from '@/utils/formatters';
-import type { Loan, Transaction } from '@/types';
 import { Link } from 'react-router';
 import { format } from 'date-fns';
+import { useMemo } from 'react';
+import { ReceiptText } from 'lucide-react';
 
 const Dashboard = () => {
-  const { currentUser } = useUserStore();
-  const { getTransactionsForUser } = useTransactionStore();
-  const { getAccountsForUser } = useAccountStore();
-  const { getActiveLoans } = useLoanStore();
-  const { getAllCategories } = useCategoryStore();
+  const currentUser = useUserStore((state) => state.currentUser);
+  const rawTransactions = useTransactionStore((state) => state.transactions);
+  const rawAccounts = useAccountStore((state) => state.accounts);
+  const rawLoans = useLoanStore((state) => state.loans);
+  const getCategories = useCategoryStore((state) => state.getAllCategories);
 
   const userId = currentUser?.id ?? '';
-  const transactions = getTransactionsForUser(userId);
-  const accounts = getAccountsForUser(userId);
-  const activeLoans = getActiveLoans(userId);
-  const categories = getAllCategories(userId);
 
-  const getTotalIncome = (txs: Transaction[]) =>
-    txs.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const transactions = useMemo(() => {
+    return rawTransactions
+      .filter((t) => t.userId === userId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [rawTransactions, userId]);
 
-  const getTotalExpense = (txs: Transaction[]) =>
-    txs.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const accounts = useMemo(() => {
+    return rawAccounts.filter((a) => a.userId === userId);
+  }, [rawAccounts, userId]);
 
-  const getLoanTaken = (loans: Loan[]) =>
-    loans.filter((l) => l.type === 'taken').reduce((s, l) => s + l.remainingAmount, 0);
+  const activeLoans = useMemo(() => {
+    return rawLoans.filter((l) => l.userId === userId && l.status === 'active');
+  }, [rawLoans, userId]);
 
-  const getLoanGiven = (loans: Loan[]) =>
-    loans.filter((l) => l.type === 'given').reduce((s, l) => s + l.remainingAmount, 0);
+  const categories = useMemo(() => {
+    return getCategories(userId);
+  }, [getCategories, userId]);
 
-  const netWorth = accounts.reduce((s, a) => s + (a.balance ?? 0), 0);
+  const totalIncome = useMemo(() => {
+    return transactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  }, [transactions]);
 
-  const statCards = [
-    {
-      title: 'Total Income',
-      value: getTotalIncome(transactions),
-      accent: 'secondary' as const,
-      badge: '▲ All time',
-      badgeVariant: 'up' as const,
-    },
-    {
-      title: 'Total Expense',
-      value: getTotalExpense(transactions),
-      accent: 'tertiary' as const,
-      badge: '▼ This month',
-      badgeVariant: 'down' as const,
-    },
-    {
-      title: 'Loan Taken',
-      value: getLoanTaken(activeLoans),
-      accent: 'primary' as const,
-      badge: '● Active',
-      badgeVariant: 'neutral' as const,
-    },
-    {
-      title: 'Loan Given',
-      value: getLoanGiven(activeLoans),
-      accent: 'warning' as const,
-      badge: '● Active',
-      badgeVariant: 'neutral' as const,
-    },
-  ];
+  const totalExpense = useMemo(() => {
+    return transactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  }, [transactions]);
+
+  const loanTaken = useMemo(() => {
+    return activeLoans.filter((l) => l.type === 'taken').reduce((s, l) => s + l.remainingAmount, 0);
+  }, [activeLoans]);
+
+  const loanGiven = useMemo(() => {
+    return activeLoans.filter((l) => l.type === 'given').reduce((s, l) => s + l.remainingAmount, 0);
+  }, [activeLoans]);
+
+  const netWorth = useMemo(() => {
+    return accounts.reduce((s, a) => s + (a.balance ?? 0), 0);
+  }, [accounts]);
+
+  const statCards = useMemo(
+    () => [
+      {
+        title: 'Total Income',
+        value: totalIncome,
+        accent: 'secondary' as const,
+        badge: 'All time',
+        badgeVariant: 'up' as const,
+      },
+      {
+        title: 'Total Expense',
+        value: totalExpense,
+        accent: 'tertiary' as const,
+        badge: 'This month',
+        badgeVariant: 'down' as const,
+      },
+      {
+        title: 'Loan Taken',
+        value: loanTaken,
+        accent: 'primary' as const,
+        badge: 'Active',
+        badgeVariant: 'neutral' as const,
+      },
+      {
+        title: 'Loan Given',
+        value: loanGiven,
+        accent: 'warning' as const,
+        badge: 'Active',
+        badgeVariant: 'neutral' as const,
+      },
+    ],
+    [totalIncome, totalExpense, loanTaken, loanGiven]
+  );
 
   return (
-    <div className="min-h-screen bg-background px-8 pt-7 pb-10">
+    <div className="min-h-screen bg-surface px-6 pt-6 pb-10 md:px-8">
       {/* Page Header */}
       <div className="mb-7 flex items-center justify-between">
         <div>
-          <p className="mb-1 text-[10px] font-bold tracking-[0.15em] text-outline uppercase">
-            Overview
-          </p>
-          <h1 className="text-[22px] font-bold tracking-tight text-on-background">Dashboard</h1>
+          <h1 className="font-display text-[22px] font-bold tracking-tight text-on-surface">
+            Dashboard
+          </h1>
         </div>
-        <p className="font-mono text-xs text-outline">
+        <p className="font-mono text-xs text-on-surface-variant">
           {format(new Date(), 'MMM yyyy').toUpperCase()}
         </p>
       </div>
 
       {/* Stat Cards */}
-      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {statCards.map((card) => (
           <StatsCard
             key={card.title}
@@ -105,21 +128,36 @@ const Dashboard = () => {
         {/* Transactions — 8 cols */}
         <div className="col-span-12 lg:col-span-8">
           <div className="mb-4 flex items-center justify-between">
-            <p className="text-[10px] font-bold tracking-[0.12em] text-on-surface-variant uppercase">
+            <h2 className="font-display text-sm font-semibold tracking-tight text-on-surface">
               Recent Transactions
-            </p>
+            </h2>
             <Link
               to="/transactions"
-              className="text-[10px] font-bold tracking-widest text-primary uppercase opacity-80 hover:opacity-100"
+              className="-mx-3 -my-2 inline-flex items-center gap-1 px-3 py-2 text-xs font-bold tracking-wider text-primary uppercase opacity-80 transition-opacity hover:opacity-100"
+              aria-label="View all transactions"
             >
-              View All →
+              View All <span aria-hidden="true">→</span>
             </Link>
           </div>
           <div className="flex flex-col gap-1.5">
             {transactions.length === 0 && (
-              <p className="py-8 text-center text-sm text-on-surface-variant">
-                No transactions yet.
-              </p>
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-outline-variant/30 bg-surface-container/30 px-6 py-10 text-center">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/5 text-primary">
+                  <ReceiptText className="h-5 w-5" />
+                </div>
+                <h3 className="font-display text-sm font-semibold text-on-surface">
+                  No transactions logged
+                </h3>
+                <p className="mt-1 max-w-xs text-xs text-on-surface-variant">
+                  Start tracking your personal cash flow by logging your first transaction.
+                </p>
+                <Link
+                  to="/transactions"
+                  className="mt-4 inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-on-primary shadow-sm transition-all hover:scale-[1.02] hover:bg-primary-dim active:scale-[0.98]"
+                >
+                  + Add Transaction
+                </Link>
+              </div>
             )}
             {transactions.slice(0, 6).map((tx) => (
               <TransactionListItem
@@ -135,28 +173,23 @@ const Dashboard = () => {
         {/* Right col — 4 cols */}
         <div className="col-span-12 flex flex-col gap-4 lg:col-span-4">
           {/* Net Worth Banner */}
-          <div className="relative overflow-hidden rounded-[14px] border border-outline-variant/30 bg-surface-container p-5">
-            <p className="mb-1 text-[10px] font-bold tracking-[0.12em] text-outline uppercase">
+          <div className="relative overflow-hidden rounded-2xl border border-outline-variant/15 bg-surface-container p-5">
+            <div className="absolute top-0 right-0 left-0 h-0.5 bg-primary opacity-50" />
+            <h3 className="mb-1 font-display text-xs font-semibold tracking-tight text-on-surface-variant">
               Net Worth
-            </p>
+            </h3>
             <p className="font-mono text-3xl font-medium tracking-tight text-on-surface">
               {formatCurrency(netWorth, false, currentUser?.defaultCurrency)}
             </p>
-            <p className="mt-1 text-[11px] text-outline">Across all accounts</p>
-            <span
-              className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[52px] font-bold tracking-[-0.04em] text-primary/4"
-              aria-hidden
-            >
-              NET
-            </span>
+            <p className="mt-1 text-[11px] text-on-surface-variant/80">Across all accounts</p>
           </div>
 
           {/* Account Snapshots */}
-          <div className="overflow-hidden rounded-[14px] border border-outline-variant/30 bg-surface-container">
+          <div className="overflow-hidden rounded-2xl border border-outline-variant/15 bg-surface-container">
             <div className="border-b border-outline-variant/20 px-4 py-3">
-              <p className="text-[10px] font-bold tracking-[0.12em] text-on-surface-variant uppercase">
+              <h3 className="font-display text-xs font-semibold tracking-tight text-on-surface-variant">
                 Accounts
-              </p>
+              </h3>
             </div>
             {accounts.length === 0 && (
               <p className="px-4 py-3 text-xs text-on-surface-variant">No accounts.</p>
@@ -171,11 +204,11 @@ const Dashboard = () => {
           </div>
 
           {/* Loan Snapshots */}
-          <div className="overflow-hidden rounded-[14px] border border-outline-variant/30 bg-surface-container">
+          <div className="overflow-hidden rounded-2xl border border-outline-variant/15 bg-surface-container">
             <div className="border-b border-outline-variant/20 px-4 py-3">
-              <p className="text-[10px] font-bold tracking-[0.12em] text-on-surface-variant uppercase">
+              <h3 className="font-display text-xs font-semibold tracking-tight text-on-surface-variant">
                 Active Loans
-              </p>
+              </h3>
             </div>
             {activeLoans.length === 0 && (
               <p className="px-4 py-3 text-xs text-on-surface-variant">No active loans.</p>

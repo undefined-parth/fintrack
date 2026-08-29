@@ -11,31 +11,28 @@ const BottomNav = () => {
   ];
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-100 flex w-full items-center justify-around border-t border-white/5 bg-[`#06080c`]/80 px-2 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] backdrop-blur-xl md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-100 flex w-full items-center justify-around border-t border-outline-variant/15 bg-surface/80 px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] backdrop-blur-xl md:hidden">
       {navItems.map((item) => (
         <NavLink
           key={item.path}
           to={item.path}
           className={({ isActive }) =>
-            `relative flex flex-col items-center gap-1 transition-all duration-300 ${
-              isActive ? 'text-primary' : 'text-outline hover:text-white'
+            `relative flex flex-col items-center gap-0.5 rounded-xl px-4 py-1.5 transition-all duration-200 ${
+              isActive ? 'text-primary' : 'text-on-surface-variant'
             }`
           }
         >
           {({ isActive }) => (
             <>
-              <item.icon
-                className={`h-5 w-5 transition-transform duration-300 ${
-                  isActive ? 'scale-110' : 'scale-100'
-                }`}
-              />
-              <span className="text-[10px] font-black tracking-tight uppercase">{item.label}</span>
               {isActive && (
                 <motion.div
-                  layoutId="bottomNavIndicator"
-                  className="absolute -top-3 h-1 w-6 rounded-full bg-primary shadow-[0_0_10px_#799dff]"
+                  layoutId="bottomNavActive"
+                  className="absolute inset-0 rounded-xl bg-primary/10"
+                  transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                 />
               )}
+              <item.icon className="relative z-10 h-5 w-5" />
+              <span className="relative z-10 text-[10px] font-semibold">{item.label}</span>
             </>
           )}
         </NavLink>

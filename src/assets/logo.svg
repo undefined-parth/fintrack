@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <g fill="#a78bfa" stroke="#1e1b2e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Letter F -->
+    <path d="M 15 18 
+             L 49 18 
+             L 38 29 
+             L 28 29 
+             L 28 43 
+             L 46 43 
+             L 46 54 
+             L 28 54 
+             L 28 82 
+             L 15 82 
+             Z" />
+             
+    <!-- Letter T -->
+    <path d="M 53 18 
+             L 85 18 
+             L 85 29 
+             L 69 29 
+             L 69 82 
+             L 56 82 
+             L 56 29 
+             L 42 29 
+             Z" />
+  </g>
+</svg>
