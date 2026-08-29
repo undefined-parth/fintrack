@@ -194,7 +194,7 @@ const KeypadModal = ({ isOpen, onClose, title, onSuccess, error, setError }: Key
 
 const Settings = () => {
   const { currentUser, editUser } = useUserStore();
-  const { getSettings, initSettings, updateSettings, setPIN, clearPIN } = useSettingsStore();
+  const { getSettings, initSettings, updateSettings, setPIN } = useSettingsStore();
 
   const userId = currentUser?.id || '';
 

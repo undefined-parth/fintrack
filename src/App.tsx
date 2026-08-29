@@ -123,7 +123,6 @@ function App() {
               }
         }
         errorMessage="Incorrect password. Try again."
-        stepText="Step 1 of 2"
         user={selectedUser}
       />
     </>
