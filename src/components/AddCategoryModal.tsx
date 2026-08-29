@@ -74,12 +74,12 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans">
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
-      <div className="animate-in fade-in zoom-in relative w-full max-w-md overflow-hidden rounded-3xl border border-outline-variant/30 bg-surface-container shadow-2xl transition-all duration-300">
-        <div className="flex items-center justify-between border-b border-outline-variant/20 px-6 py-4">
+      <div className="animate-in fade-in zoom-in relative w-full max-w-md overflow-hidden rounded-2xl border border-outline-variant/15 bg-surface-container shadow-2xl transition-all duration-300">
+        <div className="flex items-center justify-between border-b border-outline-variant/15 px-6 py-4">
           <h2 className="text-xl font-bold text-on-surface">
             {editingCategory ? 'Edit Category' : 'Add Category'}
           </h2>
@@ -93,14 +93,12 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
 
         <form onSubmit={handleSubmit} className="p-6">
           {error && (
-            <div className="mb-4 rounded-xl bg-error-container/20 p-3 text-sm text-error">
-              {error}
-            </div>
+            <div className="mb-4 rounded-xl bg-tertiary/10 p-3 text-sm text-tertiary">{error}</div>
           )}
 
           <div className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-outline uppercase tracking-wider">
+              <label className="mb-1.5 block text-xs font-semibold tracking-wider text-outline uppercase">
                 Category Name
               </label>
               <input
@@ -109,13 +107,13 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Health"
-                className="w-full rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:border-primary/50 focus:outline-none"
+                className="w-full rounded-xl border border-outline-variant/15 bg-surface px-4 py-3 text-sm text-on-surface focus:border-primary/30 focus:outline-none"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className={editingCategory ? 'opacity-50 pointer-events-none' : ''}>
-                <label className="mb-1.5 block text-xs font-semibold text-outline uppercase tracking-wider">
+              <div className={editingCategory ? 'pointer-events-none opacity-50' : ''}>
+                <label className="mb-1.5 block text-xs font-semibold tracking-wider text-outline uppercase">
                   Type
                 </label>
                 <div className="w-full">
@@ -130,7 +128,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
                 </div>
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-outline uppercase tracking-wider">
+                <label className="mb-1.5 block text-xs font-semibold tracking-wider text-outline uppercase">
                   Icon (Emoji)
                 </label>
                 <input
@@ -138,7 +136,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
                   value={icon}
                   onChange={(e) => setIcon(e.target.value)}
                   placeholder="📁"
-                  className="w-full rounded-xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:border-primary/50 focus:outline-none"
+                  className="w-full rounded-xl border border-outline-variant/15 bg-surface px-4 py-3 text-sm text-on-surface focus:border-primary/30 focus:outline-none"
                 />
               </div>
             </div>
@@ -148,13 +146,13 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-2xl border border-outline-variant/30 py-4 text-sm font-bold text-outline transition-all hover:bg-surface-variant/30"
+              className="flex-1 rounded-2xl border border-outline-variant/15 py-3 text-sm font-semibold text-on-surface-variant transition-all hover:bg-surface-container-highest"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 rounded-2xl bg-primary py-4 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="flex-1 rounded-xl bg-primary py-3 text-sm font-semibold text-on-primary transition-all duration-200 hover:bg-primary-dim active:scale-[0.98]"
             >
               {editingCategory ? 'Update Category' : 'Save Category'}
             </button>
