@@ -9,6 +9,7 @@ import { useLoanStore } from '@/stores/useLoanStore';
 import { useTransactionStore } from '@/stores/useTransactionStore';
 import { useUserStore } from '@/stores/useUserStore';
 import { formatCurrency } from '@/utils/formatters';
+import { getNetWorth } from '@/utils/selectors';
 import { Link } from 'react-router';
 import { format } from 'date-fns';
 import { useMemo } from 'react';
@@ -65,9 +66,7 @@ const Dashboard = () => {
     return activeLoans.filter((l) => l.type === 'given').reduce((s, l) => s + l.remainingAmount, 0);
   }, [activeLoans]);
 
-  const netWorth = useMemo(() => {
-    return accounts.reduce((s, a) => s + (a.balance ?? 0), 0);
-  }, [accounts]);
+  const netWorth = useMemo(() => getNetWorth(accounts), [accounts]);
 
   const statCards = useMemo(
     () => [

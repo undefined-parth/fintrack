@@ -105,14 +105,22 @@ export const useLoanStore = create<LoanState>()(
         if (loan.remainingAmount <= 0)
           return { ok: false, error: 'Loan has no remaining amount to default' };
 
+        // NOTE: this must NOT be an 'expense' transaction. The money already
+        // left the account when the loan was given (loanType: 'given' already
+        // deducted the full totalAmount from the balance). Recording another
+        // expense here for the remaining amount silently double-counts the
+        // loss. type: 'loan' + loanType: 'default' carries zero balance
+        // impact (see applyTransactionImpact/revertTransactionImpact) — it
+        // only exists so the write-off shows up in the loan's history log.
         const txStore = useTransactionStore.getState();
         const txResult = txStore.addTransaction({
           userId: loan.userId,
           date: new Date().toISOString(),
           title: `Default: ${loan.personName}`,
-          description: `Remaining amount marked as bad debt/expense`,
+          description: `Remaining amount written off as bad debt (no additional balance impact — funds were already deducted when the loan was given)`,
           amount: loan.remainingAmount,
-          type: 'expense',
+          type: 'loan',
+          loanType: 'default',
           accountId: loan.accountId,
           loanId: loan.id,
           categoryId: 'sys_loan_default',

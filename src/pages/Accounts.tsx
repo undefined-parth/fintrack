@@ -4,6 +4,7 @@ import { getDisplayBalance, useAccountStore } from '../stores/useAccountStore';
 import { useUserStore } from '../stores/useUserStore';
 import type { Account } from '../types';
 import { formatCurrency } from '../utils/formatters';
+import { getNetWorth } from '@/utils/selectors';
 import AddAccountModal from '@/components/AddAccountModal';
 import { useShallow } from 'zustand/react/shallow';
 import { motion } from 'framer-motion';
@@ -19,7 +20,7 @@ const Accounts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
 
-  const { totalBalance, totalDebt, netWorth } = useMemo(() => {
+  const { totalBalance, totalDebt } = useMemo(() => {
     let balance = 0;
     let debt = 0;
     accounts.forEach((a) => {
@@ -29,12 +30,10 @@ const Accounts = () => {
         balance += a.balance || 0;
       }
     });
-    return {
-      totalBalance: balance,
-      totalDebt: debt,
-      netWorth: balance - debt,
-    };
+    return { totalBalance: balance, totalDebt: debt };
   }, [accounts]);
+
+  const netWorth = useMemo(() => getNetWorth(accounts), [accounts]);
 
   const handleDelete = (id: string) => {
     if (

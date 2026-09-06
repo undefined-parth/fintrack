@@ -98,6 +98,11 @@ export const useTransactionStore = create<TransactionState>()(
               remainingAmount: newRemaining,
               status: newRemaining <= 0 ? 'closed' : 'active',
             });
+          } else if (tx.loanType === 'default') {
+            // Intentional no-op: the loss was already reflected in the
+            // account balance when the loan was disbursed (loanType:
+            // 'given'). This record exists purely for the loan's audit
+            // trail/history and must never touch the balance again.
           }
         }
 
@@ -144,6 +149,8 @@ export const useTransactionStore = create<TransactionState>()(
                 status: 'active', // reopen
               });
             }
+          } else if (tx.loanType === 'default') {
+            // Intentional no-op — see applyTransactionImpact.
           }
         }
         return { ok: true };

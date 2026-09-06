@@ -40,7 +40,7 @@ export interface Category {
 
 // ─── Transaction ─────────────────────────────────────────────────────────────
 export type TransactionType = 'income' | 'expense' | 'transfer' | 'loan';
-export type LoanTransactionType = 'given' | 'taken' | 'settlement';
+export type LoanTransactionType = 'given' | 'taken' | 'settlement' | 'default';
 
 export interface Transaction {
   id: string;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useUserStore } from '@/stores/useUserStore';
+import { getNetWorth } from '@/utils/selectors';
 import { NavLink, useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import logoUrl from '@/assets/logo.svg';
@@ -41,12 +42,6 @@ const Sidebar = () => {
     { path: '/reports', label: 'Analytics', icon: BarChart3 },
     { path: '/settings', label: 'Settings', icon: Settings },
   ];
-
-  const getNetWorth = (id: string | undefined): number => {
-    if (!id) return 0;
-    const accounts = getAccountsForUser(id);
-    return accounts.reduce((acc, a) => acc + (Number(a.balance) || 0), 0);
-  };
 
   const handleLogout = () => {
     logoutUser();
@@ -194,7 +189,7 @@ const Sidebar = () => {
                   </p>
                   <p className="font-mono text-xs whitespace-nowrap text-secondary">
                     {currentUser?.currencyIcon}
-                    {getNetWorth(currentUser?.id).toLocaleString()}
+                    {getNetWorth(getAccountsForUser(currentUser?.id ?? '')).toLocaleString()}
                   </p>
                 </motion.div>
               )}

@@ -1,10 +1,15 @@
 import { format } from 'date-fns'
 import type { Account, Transaction, Loan } from '../types'
 
+// Net worth = assets − liabilities. Cash/bank balances are assets; a credit
+// card's `used` amount is debt owed and must be subtracted, not ignored.
+// This is the single source of truth — Sidebar, Dashboard, and Accounts all
+// call this instead of maintaining their own (previously divergent) formulas.
 export const getNetWorth = (accounts: Account[]): number => {
-  return accounts
-    .filter(a => a.type !== 'credit')
-    .reduce((sum, a) => sum + (a.balance ?? 0), 0)
+  return accounts.reduce((sum, a) => {
+    if (a.type === 'credit') return sum - (a.used ?? 0)
+    return sum + (a.balance ?? 0)
+  }, 0)
 }
 
 export const getDashboardSummary = (
