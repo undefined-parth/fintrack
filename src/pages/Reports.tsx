@@ -4,12 +4,11 @@ import { useTransactionStore } from '@/stores/useTransactionStore';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useLoanStore } from '@/stores/useLoanStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
+import { SYSTEM_CATEGORIES } from '@/constants/categories';
 import {
   useBudgetStore,
-  getSpentForBudget,
+  getBudgetStats,
   getEffectiveLimit,
-  getPercentSpent,
-  isOverBudget,
 } from '@/stores/useBudgetStore';
 import { formatCurrency } from '@/utils/formatters';
 import { format, eachMonthOfInterval, startOfYear, endOfYear } from 'date-fns';
@@ -76,7 +75,7 @@ const Reports = () => {
   const rawTransactions = useTransactionStore((state) => state.transactions);
   const rawAccounts = useAccountStore((state) => state.accounts);
   const rawLoans = useLoanStore((state) => state.loans);
-  const getCategories = useCategoryStore((state) => state.getAllCategories);
+  const userCategories = useCategoryStore((state) => state.userCategories); // re-render on category changes
   const rawBudgets = useBudgetStore((state) => state.budgets);
 
   const userId = currentUser?.id ?? '';
@@ -93,7 +92,16 @@ const Reports = () => {
     [rawAccounts, userId]
   );
   const loans = useMemo(() => rawLoans.filter((l) => l.userId === userId), [rawLoans, userId]);
-  const categories = useMemo(() => getCategories(userId), [getCategories, userId]);
+  const categories = useMemo(
+    () => [...SYSTEM_CATEGORIES, ...userCategories.filter((c) => c.userId === userId)],
+    [userCategories, userId]
+  );
+
+  // O(1) category lookups for chart data + CSV export instead of find() per entry
+  const categoryMap = useMemo(
+    () => new Map(categories.map((c) => [c.id, c])),
+    [categories]
+  );
   const budgets = useMemo(
     () => rawBudgets.filter((b) => b.userId === userId),
     [rawBudgets, userId]
@@ -150,9 +158,9 @@ const Reports = () => {
       }
     });
 
-    const categoryObj = categories.find((c) => c.id === topId);
+    const categoryObj = categoryMap.get(topId);
     return categoryObj ? { name: categoryObj.name, amount: maxSpent } : null;
-  }, [filteredTransactions, categories]);
+  }, [filteredTransactions, categoryMap]);
 
   const weeklyAverageSpend = useMemo(() => {
     if (filteredTransactions.length === 0) return 0;
@@ -167,34 +175,33 @@ const Reports = () => {
 
   // ─── Chart Data Preparations ───────────────────────────────────────────────
 
-  // 1. Cash Flow (Income vs Expense by Month)
+  // 1. Cash Flow (Income vs Expense by Month) — single pass over transactions
+  // (previously re-filtered the full array once per month: O(12 × n))
   const cashFlowChartData = useMemo(() => {
     const months = eachMonthOfInterval({
       start: startOfYear(new Date(selectedYear, 0, 1)),
       end: endOfYear(new Date(selectedYear, 11, 31)),
     });
 
-    return months.map((m) => {
-      const monthIdx = m.getMonth();
-      const monthTxs = transactions.filter((t) => {
-        const d = new Date(t.date);
-        const accountMatch = selectedAccountId === 'all' || t.accountId === selectedAccountId;
-        return d.getFullYear() === selectedYear && d.getMonth() === monthIdx && accountMatch;
-      });
+    const buckets = months.map((m) => ({
+      name: format(m, 'MMM'),
+      Income: 0,
+      Expense: 0,
+      Net: 0,
+    }));
 
-      const income = monthTxs.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-      const expense = monthTxs
-        .filter((t) => t.type === 'expense')
-        .reduce((s, t) => s + t.amount, 0);
-      const net = income - expense;
-
-      return {
-        name: format(m, 'MMM'),
-        Income: income,
-        Expense: expense,
-        Net: net,
-      };
+    transactions.forEach((t) => {
+      if (t.type !== 'income' && t.type !== 'expense') return;
+      const d = new Date(t.date);
+      if (d.getFullYear() !== selectedYear) return;
+      if (selectedAccountId !== 'all' && t.accountId !== selectedAccountId) return;
+      const bucket = buckets[d.getMonth()];
+      if (!bucket) return;
+      if (t.type === 'income') bucket.Income += t.amount;
+      else bucket.Expense += t.amount;
     });
+
+    return buckets.map((b) => ({ ...b, Net: b.Income - b.Expense }));
   }, [transactions, selectedYear, selectedAccountId]);
 
   // 2. Category Spending Breakdown (Donut Data)
@@ -208,7 +215,7 @@ const Reports = () => {
 
     return Object.entries(groups)
       .map(([id, amount]) => {
-        const cat = categories.find((c) => c.id === id);
+        const cat = categoryMap.get(id);
         return {
           id,
           name: cat?.name || 'Uncategorized',
@@ -217,22 +224,21 @@ const Reports = () => {
         };
       })
       .sort((a, b) => b.value - a.value);
-  }, [filteredTransactions, categories]);
+  }, [filteredTransactions, categoryMap]);
 
   // 3. Active Loan Liability Trends
   const activeLoansList = useMemo(() => {
     return loans.filter((l) => l.status === 'active');
   }, [loans]);
 
-  // 4. Budget Threshold Limit Indicators
+  // 4. Budget Threshold Limit Indicators — one scan per budget via getBudgetStats
+  // (previously getSpentForBudget ran 3 separate full-array scans per budget)
   const budgetAlerts = useMemo(() => {
     return budgets
       .map((b) => {
+        const { spent, percent, isOver } = getBudgetStats(b, userId, transactions);
         const limit = getEffectiveLimit(b);
-        const spent = getSpentForBudget(b, userId, transactions);
-        const percent = getPercentSpent(b, userId, transactions);
-        const isOver = isOverBudget(b, userId, transactions);
-        const catName = categories.find((c) => c.id === b.categoryId)?.name || 'Uncategorized';
+        const catName = categoryMap.get(b.categoryId)?.name || 'Uncategorized';
 
         return {
           id: b.id,
@@ -244,18 +250,19 @@ const Reports = () => {
         };
       })
       .sort((a, b) => b.percent - a.percent);
-  }, [budgets, userId, transactions, categories]);
+  }, [budgets, userId, transactions, categoryMap]);
 
   // ─── Actions ────────────────────────────────────────────────────────────────
 
   const handleExportCSV = () => {
     if (filteredTransactions.length === 0) return;
 
+    const accountMap = new Map(accounts.map((a) => [a.id, a]));
     const csvContent = [
       ['Date', 'Title', 'Type', 'Category', 'Account', 'Amount'].join(','),
       ...filteredTransactions.map((tx) => {
-        const cat = categories.find((c) => c.id === tx.categoryId)?.name || 'Uncategorized';
-        const acc = accounts.find((a) => a.id === tx.accountId)?.name || 'Unknown';
+        const cat = categoryMap.get(tx.categoryId)?.name || 'Uncategorized';
+        const acc = accountMap.get(tx.accountId)?.name || 'Unknown';
         return [
           format(new Date(tx.date), 'yyyy-MM-dd'),
           `"${tx.title.replace(/"/g, '""')}"`,

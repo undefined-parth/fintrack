@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import type { Account, Category, Transaction } from '@/types';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 import IconIncome from '@/assets/icons/IconIncome';
@@ -80,7 +80,9 @@ interface TransactionListItemProps {
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-const TransactionListItem = ({
+// Memoized: on the Transactions page this row is rendered inside a large list —
+// without memo, every parent state change (e.g. typing in search) re-renders all rows.
+const TransactionListItem = memo(function TransactionListItem({
   transaction,
   category,
   account,
@@ -88,7 +90,7 @@ const TransactionListItem = ({
   onEdit,
   onDelete,
   onViewDetail,
-}: TransactionListItemProps) => {
+}: TransactionListItemProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const type = transaction.type === 'loan' ? 'loan' : transaction.type;
   const isLoan = transaction.type === 'loan';
@@ -307,6 +309,6 @@ const TransactionListItem = ({
       </div>
     </div>
   );
-};
+});
 
 export default TransactionListItem;

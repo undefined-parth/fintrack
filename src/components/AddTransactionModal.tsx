@@ -33,11 +33,13 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     ])
   );
   const { addTransaction, updateTransaction } = useTransactionStore();
-  const { getActiveLoans } = useLoanStore();
+  // Subscribe to the loans array directly — memoizing on the stable getActiveLoans
+  // fn ref previously froze the list at whatever was active on first render.
+  const loans = useLoanStore((state) => state.loans);
 
   const activeLoans = useMemo(() => {
-    return getActiveLoans(currentUser?.id || '');
-  }, [currentUser?.id, getActiveLoans]);
+    return loans.filter((l) => l.userId === currentUser?.id && l.status === 'active');
+  }, [loans, currentUser?.id]);
 
   // Initial defaults
   const getDefaultCategory = (txType: TransactionType, cats: Category[]) => {

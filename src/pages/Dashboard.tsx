@@ -4,6 +4,7 @@ import StatsCard from '@/components/StatsCard';
 import TransactionListItem from '@/components/TransactionListItem';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
+import { SYSTEM_CATEGORIES } from '@/constants/categories';
 import { useLoanStore } from '@/stores/useLoanStore';
 import { useTransactionStore } from '@/stores/useTransactionStore';
 import { useUserStore } from '@/stores/useUserStore';
@@ -18,14 +19,17 @@ const Dashboard = () => {
   const rawTransactions = useTransactionStore((state) => state.transactions);
   const rawAccounts = useAccountStore((state) => state.accounts);
   const rawLoans = useLoanStore((state) => state.loans);
-  const getCategories = useCategoryStore((state) => state.getAllCategories);
+  // Subscribe to userCategories directly so category edits/additions re-render
+  // (the getAllCategories getter is a stable fn reference and never triggers updates).
+  const userCategories = useCategoryStore((state) => state.userCategories);
 
   const userId = currentUser?.id ?? '';
 
   const transactions = useMemo(() => {
     return rawTransactions
       .filter((t) => t.userId === userId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      // ISO-8601 dates sort lexicographically — no per-comparison Date parsing
+      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
   }, [rawTransactions, userId]);
 
   const accounts = useMemo(() => {
@@ -37,8 +41,13 @@ const Dashboard = () => {
   }, [rawLoans, userId]);
 
   const categories = useMemo(() => {
-    return getCategories(userId);
-  }, [getCategories, userId]);
+    return [...SYSTEM_CATEGORIES, ...userCategories.filter((c) => c.userId === userId)];
+  }, [userCategories, userId]);
+
+  const categoryMap = useMemo(
+    () => new Map(categories.map((c) => [c.id, c])),
+    [categories]
+  );
 
   const totalIncome = useMemo(() => {
     return transactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
@@ -163,7 +172,7 @@ const Dashboard = () => {
               <TransactionListItem
                 key={tx.id}
                 transaction={tx}
-                category={categories.find((c) => c.id === tx.categoryId)}
+                category={categoryMap.get(tx.categoryId)}
                 variant="compact"
               />
             ))}

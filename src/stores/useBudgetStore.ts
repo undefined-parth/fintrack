@@ -65,6 +65,24 @@ export const isOverBudget = (budget: Budget, userId: string, transactions: Trans
   return getSpentForBudget(budget, userId, transactions) > getEffectiveLimit(budget)
 }
 
+// Single-pass variant: computes spent, percent and isOver in ONE scan of the
+// transactions array. Use this in render paths where you need all three values
+// (calling getSpentForBudget + getPercentSpent + isOverBudget separately scans
+// the full array 3 times per budget).
+export const getBudgetStats = (
+  budget: Budget,
+  userId: string,
+  transactions: Transaction[]
+): { spent: number; percent: number; isOver: boolean } => {
+  const eff = getEffectiveLimit(budget)
+  const spent = getSpentForBudget(budget, userId, transactions)
+  return {
+    spent,
+    percent: eff <= 0 ? 0 : Math.round((spent / eff) * 100),
+    isOver: spent > eff,
+  }
+}
+
 export const processBudgetRollover = (budget: Budget, userId: string, transactions: Transaction[]): number => {
   if (!budget.rollover) return 0
   const eff = getEffectiveLimit(budget)

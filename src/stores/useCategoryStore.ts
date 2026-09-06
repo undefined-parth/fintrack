@@ -2,12 +2,13 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { v4 as uuid } from 'uuid'
 import type { Category, CategoryType, Result } from '../types'
-import { SYSTEM_CATEGORIES } from '../constants/categories'
+import { SYSTEM_CATEGORIES, DEFAULT_CATEGORY_SEEDS } from '../constants/categories'
 import { useAuditStore } from './useAuditStore'
 
 interface CategoryState {
   userCategories: Category[]
   getAllCategories: (userId: string) => Category[]
+  seedDefaults: (userId: string) => void
   addCategory: (userId: string, name: string, type: string, icon?: string) => Result<Category>
   editCategory: (id: string, updates: Partial<Category>) => Result
   deleteCategory: (id: string) => Result
@@ -22,6 +23,20 @@ export const useCategoryStore = create<CategoryState>()(
           ...SYSTEM_CATEGORIES,
           ...get().userCategories.filter(c => c.userId === userId)
         ]
+      },
+      // Seed starter categories for a brand-new user. Idempotent: skips users
+      // that already have categories. IDs are generated per-user with uuid.
+      seedDefaults: (userId) => {
+        if (get().userCategories.some(c => c.userId === userId)) return
+        const seeded: Category[] = DEFAULT_CATEGORY_SEEDS.map(seed => ({
+          id: uuid(),
+          userId,
+          name: seed.name,
+          type: seed.type,
+          icon: seed.icon,
+          isSystem: false,
+        }))
+        set(state => ({ userCategories: [...state.userCategories, ...seeded] }))
       },
       addCategory: (userId, name, type, icon) => {
         if (!name.trim()) return { ok: false, error: 'Name is required' }

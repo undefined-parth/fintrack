@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { v4 as uuid } from 'uuid';
 import type { User, Result } from '../types';
 import { useAuditStore } from './useAuditStore';
+import { useCategoryStore } from './useCategoryStore';
 
 interface UserState {
   users: User[];
@@ -58,6 +59,11 @@ export const useUserStore = create<UserState>()(
           entityId: newUser.id,
           newValue: newUser,
         });
+
+        // Give new users a usable starting set of expense/income categories so
+        // the Add Transaction flow works immediately (the modal dropdown only
+        // lists non-system categories).
+        useCategoryStore.getState().seedDefaults(newUser.id);
 
         return { ok: true, data: newUser };
       },

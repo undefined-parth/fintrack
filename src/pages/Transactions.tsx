@@ -1,16 +1,17 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useDeferredValue } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useUserStore } from '../stores/useUserStore';
 import { useTransactionStore } from '../stores/useTransactionStore';
 import { useCategoryStore } from '../stores/useCategoryStore';
 import { useAccountStore } from '../stores/useAccountStore';
+import { SYSTEM_CATEGORIES } from '../constants/categories';
 import AddTransactionModal from '../components/AddTransactionModal';
 import StatsCard from '@/components/StatsCard';
 import Select from '@/components/ui/Select';
 import TransactionListItem from '@/components/TransactionListItem';
 import TransactionDetailsModal from '../components/TransactionDetailsModal';
 import type { Transaction } from '../types';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   isWithinInterval,
   startOfMonth,
@@ -22,20 +23,20 @@ import {
 } from 'date-fns';
 import { Search, Plus, SlidersHorizontal, Info, ArrowUpDown, Calendar, Tag } from 'lucide-react';
 
+// Rows rendered per page — keeps the DOM light and animations cheap for large histories.
+const PAGE_SIZE = 50;
+
 const Transactions = () => {
   const currentUser = useUserStore((state) => state.currentUser);
-  const { transactions, getTransactionsForUser, getSummary, deleteTransaction } =
-    useTransactionStore(
-      useShallow((state) => ({
-        transactions: state.transactions,
-        getTransactionsForUser: state.getTransactionsForUser,
-        getSummary: state.getSummary,
-        deleteTransaction: state.deleteTransaction,
-      }))
-    );
-  const { getAllCategories } = useCategoryStore(
+  const { transactions, deleteTransaction } = useTransactionStore(
     useShallow((state) => ({
-      getAllCategories: state.getAllCategories,
+      transactions: state.transactions,
+      deleteTransaction: state.deleteTransaction,
+    }))
+  );
+  const { userCategories } = useCategoryStore(
+    useShallow((state) => ({
+      userCategories: state.userCategories,
     }))
   );
   const accounts = useAccountStore((state) => state.accounts);
@@ -43,6 +44,9 @@ const Transactions = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  // Defers the list-relevant query so typing stays snappy on large histories:
+  // the input updates immediately, the heavy re-filter/re-render is scheduled after.
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [accountFilter, setAccountFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -62,17 +66,36 @@ const Transactions = () => {
 
   const userId = currentUser?.id || '';
 
+  // NOTE: derive directly from `transactions` (subscribed above) instead of calling
+  // store getters inside useMemo — the getter references are stable, so memoizing on
+  // them previously returned STALE data after every add/edit/delete.
   const userTransactions = useMemo(() => {
-    return getTransactionsForUser(userId);
-  }, [userId, getTransactionsForUser]);
+    return transactions
+      .filter((t) => t.userId === userId)
+      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  }, [transactions, userId]);
 
   const categories = useMemo(() => {
-    return getAllCategories(userId);
-  }, [userId, getAllCategories]);
+    return [...SYSTEM_CATEGORIES, ...userCategories.filter((c) => c.userId === userId)];
+  }, [userId, userCategories]);
 
   const { totalIncome, totalExpense, net } = useMemo(() => {
-    return getSummary(userId);
-  }, [userId, getSummary]);
+    let income = 0;
+    let expense = 0;
+    userTransactions.forEach((t) => {
+      if (t.type === 'income') income += t.amount;
+      else if (t.type === 'expense') expense += t.amount;
+    });
+    return { totalIncome: income, totalExpense: expense, net: income - expense };
+  }, [userTransactions]);
+
+  // Map-based lookups: O(1) per row instead of categories.find/accounts.find per
+  // transaction (previously O(n×m) across every render of the list).
+  const categoryMap = useMemo(
+    () => new Map(categories.map((c) => [c.id, c])),
+    [categories]
+  );
+  const accountMap = useMemo(() => new Map(accounts.map((a) => [a.id, a])), [accounts]);
 
   // Extract all unique tags
   const availableTags = useMemo(() => {
@@ -82,12 +105,13 @@ const Transactions = () => {
   }, [userTransactions]);
 
   const filteredTransactions = useMemo(() => {
+    const searchLower = deferredSearchQuery.toLowerCase();
     const filtered = userTransactions.filter((tx) => {
       // 1. Basic Filters
       const matchesSearch =
-        tx.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tx.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tx.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+        tx.title.toLowerCase().includes(searchLower) ||
+        tx.description?.toLowerCase().includes(searchLower) ||
+        tx.tags.some((tag) => tag.toLowerCase().includes(searchLower));
 
       const matchesType = typeFilter === 'all' || tx.type === typeFilter;
       const matchesAccount = accountFilter === 'all' || tx.accountId === accountFilter;
@@ -129,13 +153,13 @@ const Transactions = () => {
       return true;
     });
 
-    // 5. Sorting
+    // 5. Sorting — ISO-8601 dates sort lexicographically, no Date parsing needed
     return filtered.sort((a, b) => {
       switch (sortBy) {
         case 'date_desc':
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
+          return a.date < b.date ? 1 : a.date > b.date ? -1 : 0;
         case 'date_asc':
-          return new Date(a.date).getTime() - new Date(b.date).getTime();
+          return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
         case 'amount_desc':
           return b.amount - a.amount;
         case 'amount_asc':
@@ -148,7 +172,7 @@ const Transactions = () => {
     });
   }, [
     userTransactions,
-    searchQuery,
+    deferredSearchQuery,
     typeFilter,
     accountFilter,
     categoryFilter,
@@ -160,6 +184,21 @@ const Transactions = () => {
     endDate,
     sortBy,
   ]);
+
+  // Progressive pagination — only render a window of the filtered list.
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const visibleTransactions = useMemo(
+    () => filteredTransactions.slice(0, visibleCount),
+    [filteredTransactions, visibleCount]
+  );
+  // Reset pagination whenever the result set changes (filters/search/sort).
+  // "Adjusting state during render" pattern — avoids an extra effect pass.
+  const resultCountKey = `${deferredSearchQuery}|${typeFilter}|${accountFilter}|${categoryFilter}|${dateRange}|${startDate}|${endDate}|${minAmount}|${maxAmount}|${selectedTags.join(',')}|${sortBy}`;
+  const [prevResultKey, setPrevResultKey] = useState(resultCountKey);
+  if (prevResultKey !== resultCountKey) {
+    setPrevResultKey(resultCountKey);
+    setVisibleCount(PAGE_SIZE);
+  }
 
   const handleEdit = useCallback(
     (id: string) => {
@@ -490,35 +529,29 @@ const Transactions = () => {
               </p>
             </div>
           ) : (
-            <motion.div layout className="flex flex-col gap-1.5">
-              <AnimatePresence mode="popLayout">
-                {filteredTransactions.map((tx) => {
-                  const category = categories.find((c) => c.id === tx.categoryId);
-                  const account = accounts.find((a) => a.id === tx.accountId);
-
-                  return (
-                    <motion.div
-                      key={tx.id}
-                      layout
-                      initial={{ opacity: 0, y: 8, scale: 0.99 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -8, scale: 0.99 }}
-                      transition={{ type: 'spring', damping: 24, stiffness: 260 }}
-                    >
-                      <TransactionListItem
-                        transaction={tx}
-                        category={category}
-                        account={account}
-                        variant="default"
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                        onViewDetail={handleViewDetail}
-                      />
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </motion.div>
+            <div className="flex flex-col gap-1.5">
+              {visibleTransactions.map((tx) => (
+                <div key={tx.id} className="animate-fade-in">
+                  <TransactionListItem
+                    transaction={tx}
+                    category={categoryMap.get(tx.categoryId)}
+                    account={accountMap.get(tx.accountId)}
+                    variant="default"
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onViewDetail={handleViewDetail}
+                  />
+                </div>
+              ))}
+              {filteredTransactions.length > visibleCount && (
+                <button
+                  onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                  className="mx-auto mt-4 cursor-pointer rounded-xl border border-outline-variant/15 bg-surface-container px-6 py-2.5 text-xs font-semibold text-on-surface-variant transition-all hover:bg-surface-container-high hover:text-on-surface"
+                >
+                  Load More ({filteredTransactions.length - visibleCount} remaining)
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -533,8 +566,8 @@ const Transactions = () => {
         isOpen={!!selectedDetailTransaction}
         onClose={() => setSelectedDetailTransaction(null)}
         transaction={selectedDetailTransaction}
-        category={categories.find((c) => c.id === selectedDetailTransaction?.categoryId)}
-        account={accounts.find((a) => a.id === selectedDetailTransaction?.accountId)}
+        category={categoryMap.get(selectedDetailTransaction?.categoryId ?? '')}
+        account={accountMap.get(selectedDetailTransaction?.accountId ?? '')}
         categories={categories}
         onSelectTransaction={setSelectedDetailTransaction}
       />

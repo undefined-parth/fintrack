@@ -506,8 +506,12 @@ const Step3 = ({
                           type="number"
                           placeholder="Account Balance"
                           name="balance"
+                          // BUGFIX: this was writing to `limit` (swapped with the
+                          // credit branch below), so cash/bank accounts always
+                          // saved with balance 0 and expenses failed with
+                          // "Insufficient balance".
                           onChange={(e) =>
-                            handleChange({ name: 'limit', value: e.target.value, index })
+                            handleChange({ name: 'balance', value: e.target.value, index })
                           }
                         />
                       ) : (
@@ -517,7 +521,7 @@ const Step3 = ({
                           placeholder="Credit Limit"
                           name="limit"
                           onChange={(e) =>
-                            handleChange({ name: 'balance', value: e.target.value, index })
+                            handleChange({ name: 'limit', value: e.target.value, index })
                           }
                         />
                       )}
